@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>McCoy's Facility Spend Dashboard — YTD 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --green:       #1B4D2E;
+    --green-mid:   #255f39;
+    --green-light: #2d7346;
+    --green-pale:  #eaf3ed;
+    --yellow:      #F5C300;
+    --yellow-dark: #c9a000;
+    --yellow-pale: #fef9e0;
+    --white:       #ffffff;
+    --gray-50:     #f4f5f2;
+    --gray-100:    #e8e9e4;
+    --gray-200:    #d0d2cb;
+    --gray-400:    #8f9185;
+    --gray-600:    #555750;
+    --gray-800:    #2c2e28;
+    --gray-900:    #1a1c18;
+    --pos:         #1B4D2E;
+    --pos-bg:      #eaf3ed;
+    --neg:         #b91c1c;
+    --neg-bg:      #fef2f2;
+    --warn:        #92400e;
+    --warn-bg:     #fffbeb;
+    --text:        #1a1c18;
+    --muted:       #555750;
+    --light:       #8f9185;
+    --border:      #d8dbd2;
+    --shadow:      0 1px 4px rgba(0,0,0,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--gray-50); color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; line-height: 1.5; }
+
+  /* HEADER */
+  header { background: var(--green); color: var(--white); box-shadow: 0 3px 16px rgba(0,0,0,0.25); }
+  .header-top { display: flex; align-items: center; justify-content: space-between; padding: 18px 40px 14px; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.12); }
+  .logo-area { display: flex; align-items: center; gap: 16px; }
+  .logo-badge { background: var(--yellow); color: var(--green); font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 20px; padding: 7px 16px; border-radius: 4px; text-transform: uppercase; line-height: 1; }
+  .hdr-div { width: 1px; height: 38px; background: rgba(255,255,255,0.25); }
+  .header-title { font-family: 'Barlow Condensed', sans-serif; font-size: 25px; font-weight: 800; text-transform: uppercase; line-height: 1.1; }
+  .header-title span { color: var(--yellow); }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 3px; }
+  .report-badge { background: var(--yellow); color: var(--green); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: 0.8px; text-transform: uppercase; padding: 7px 16px; border-radius: 4px; white-space: nowrap; }
+
+  /* TABS */
+  .nav-tabs { display: flex; padding: 6px 40px 0; }
+  .nav-tab { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(255,255,255,0.60); padding: 9px 20px; cursor: pointer; border: none; background: transparent; border-bottom: 3px solid transparent; transition: all 0.15s; }
+  .nav-tab:hover { color: var(--white); background: rgba(255,255,255,0.07); }
+  .nav-tab.active { color: var(--yellow); border-bottom-color: var(--yellow); background: rgba(245,195,0,0.08); }
+
+  /* MAIN */
+  main { padding: 28px 40px 60px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* KPI GRID */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(188px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .kpi-card { background: var(--white); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--green); }
+  .kpi-card.yellow::after { background: var(--yellow); }
+  .kpi-card.warn::after   { background: #f59e0b; }
+  .kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .kpi-value { font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 800; line-height: 1; color: var(--gray-900); }
+  .kpi-delta { margin-top: 7px; font-size: 12px; font-weight: 600; }
+  .kpi-delta.pos  { color: var(--pos); }
+  .kpi-delta.neg  { color: var(--neg); }
+  .kpi-delta.warn { color: var(--warn); }
+  .kpi-delta .sub { color: var(--light); font-weight: 400; }
+
+  /* SECTION HEADERS */
+  .section-header { display: flex; align-items: center; gap: 12px; margin: 26px 0 14px; }
+  .section-header h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--green); white-space: nowrap; }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+  .section-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: var(--green); text-transform: uppercase; background: var(--yellow-pale); border: 1px solid var(--yellow-dark); padding: 2px 10px; border-radius: 3px; white-space: nowrap; }
+
+  /* LAYOUT */
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 900px) { .two-col, .three-col { grid-template-columns: 1fr; } }
+
+  /* PANELS */
+  .panel { background: var(--white); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); }
+  .panel-header { background: var(--green); color: var(--white); padding: 10px 18px; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+  .panel-header .sub { font-family: 'Barlow', sans-serif; font-size: 11px; color: rgba(255,255,255,0.55); text-transform: none; font-weight: 400; letter-spacing: 0; }
+  .panel-header .ytag { background: var(--yellow); color: var(--green); font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.3px; font-family: 'Barlow Condensed', sans-serif; }
+  .panel-body { padding: 18px; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--muted); padding: 9px 12px; background: var(--gray-50); border-bottom: 2px solid var(--border); }
+  th.num { text-align: right; }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--green-pale); }
+  .total-row td { font-weight: 700; background: var(--green) !important; color: var(--white) !important; border-top: 2px solid var(--green-mid); }
+  .total-row td.num { color: var(--yellow) !important; font-size: 15px; }
+  .total-row:hover td { background: var(--green) !important; }
+  .hl-row td { background: var(--yellow-pale) !important; font-weight: 700; }
+  .hl-row td.num { color: var(--green); font-size: 15px; font-weight: 800; }
+
+  .dpos { color: var(--pos); font-weight: 600; }
+  .dneg { color: var(--neg); font-weight: 600; }
+  .dwarn { color: var(--warn); font-weight: 600; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; }
+  .badge.pos  { background: var(--pos-bg);  color: var(--pos); }
+  .badge.neg  { background: var(--neg-bg);  color: var(--neg); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn); }
+  .badge.neu  { background: var(--gray-100); color: var(--gray-600); }
+
+  /* CHARTS */
+  .chart-wrap { padding: 16px 20px; }
+  .chart-wrap canvas { max-height: 260px; }
+
+  /* PROGRESS BARS */
+  .prog-row { margin: 9px 0; }
+  .prog-label { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; font-weight: 500; }
+  .prog-label .right { color: var(--muted); font-weight: 400; }
+  .prog-track { height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+  .prog-fill        { height: 100%; border-radius: 4px; background: var(--green); transition: width 0.7s ease; }
+  .prog-fill.yellow { background: var(--yellow-dark); }
+  .prog-fill.light  { background: var(--green-light); }
+  .prog-fill.warn   { background: #f59e0b; }
+
+  /* CALLOUT */
+  .callout { background: var(--yellow-pale); border-left: 4px solid var(--yellow); border-radius: 0 4px 4px 0; padding: 10px 14px; font-size: 12px; color: var(--muted); margin-top: 12px; }
+  .callout strong { color: var(--green); }
+  .callout.pos { background: var(--pos-bg); border-left-color: var(--pos); }
+  .callout.pos strong { color: var(--pos); }
+
+  /* FOOTER */
+  footer { background: var(--green); border-top: 4px solid var(--yellow); padding: 14px 40px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: rgba(255,255,255,0.55); }
+  footer strong { color: var(--yellow); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo-area">
+      <div class="logo-badge">McCoy's</div>
+      <div class="hdr-div"></div>
+      <div>
+        <div class="header-title"><span>Facility</span> Spend Dashboard</div>
+        <div class="header-sub">YTD 2026 vs. 2025 &nbsp;·&nbsp; Through March &nbsp;·&nbsp; Source: FEXA WO Management System &nbsp;·&nbsp; Excludes CAPEX</div>
+      </div>
+    </div>
+    <div class="report-badge">Q1 — March 2026 YTD</div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('dashboard',this)">Dashboard</button>
+    <button class="nav-tab" onclick="switchTab('categories',this)">Category Detail</button>
+    <button class="nav-tab" onclick="switchTab('capex',this)">CAPEX &amp; PM</button>
+    <button class="nav-tab" onclick="switchTab('workorders',this)">Work Orders</button>
+    <button class="nav-tab" onclick="switchTab('history',this)">Historical Trends</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ====== DASHBOARD ====== -->
+<div class="tab-panel active" id="tab-dashboard">
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Facilities Spend (Excl. CAPEX)</div>
+      <div class="kpi-value">$734K</div>
+      <div class="kpi-delta pos">▼ $449K saved <span class="sub">vs 2025 Q1 ($1.184M)</span></div>
+    </div>
+    <div class="kpi-card yellow">
+      <div class="kpi-label">CAPEX Spend YTD</div>
+      <div class="kpi-value">$2.594M</div>
+      <div class="kpi-delta pos">▼ $3.592M <span class="sub">vs 2025 Q1 ($6.186M)</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Facilities PM Spend</div>
+      <div class="kpi-value">$166K</div>
+      <div class="kpi-delta warn">▲ +$37,987 <span class="sub">vs 2025 Q1 ($128K)</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Facility Spend</div>
+      <div class="kpi-value">$3.495M</div>
+      <div class="kpi-delta pos">▼ $4.003M <span class="sub">vs 2025 Q1 ($7.498M)</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Work Orders YTD</div>
+      <div class="kpi-value">798</div>
+      <div class="kpi-delta pos">▼ 277 WOs <span class="sub">vs 2025 Q1 (1,075)</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg Facilities Invoice</div>
+      <div class="kpi-value">$1,375</div>
+      <div class="kpi-delta pos">▼ $203 <span class="sub">vs 2025 Q1 ($1,578)</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg PM Invoice</div>
+      <div class="kpi-value">$832</div>
+      <div class="kpi-delta warn">▲ +$149 <span class="sub">vs 2025 Q1 ($683)</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg CAPEX Invoice</div>
+      <div class="kpi-value">$40,533</div>
+      <div class="kpi-delta pos">▼ $4,619 <span class="sub">vs 2025 Q1 ($45,152)</span></div>
+    </div>
+  </div>
+
+  <div class="callout pos" style="margin-bottom:20px;">
+    <strong>✓ Strong Q1 Performance:</strong> Facilities maintenance spend is down 38% vs Q1 2025 ($734K vs $1.18M), and CAPEX is running 58% below last year's Q1 pace ($2.6M vs $6.2M). The largest single savings driver is Alarms (−48%), followed by Racking (−87%), Plumbing (−58%), and General Contractor (−78%).
+  </div>
+
+  <div class="section-header">
+    <h2>Spend Breakdown</h2>
+    <div class="section-line"></div>
+    <div class="section-badge">Q1 YTD 2026 — Facilities Only (Excl. CAPEX)</div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-header">Facilities Spend by Category <span class="sub">Q1 2026 YTD</span></div>
+      <div class="chart-wrap"><canvas id="chartCats"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Top Categories — 2026 vs 2025 Q1 <span class="ytag">All Major Down ✓</span></div>
+      <div class="panel-body" style="padding-top:12px;">
+        <div class="prog-row">
+          <div class="prog-label"><span>Alarms</span><span class="right">$113K vs $219K &nbsp;<strong class="dpos">-48.4%</strong></span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:52%"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-label"><span>HVAC</span><span class="right">$105K vs $121K &nbsp;<strong class="dpos">-12.8%</strong></span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:87%"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-label"><span>Electrical</span><span class="right">$105K vs $127K &nbsp;<strong class="dpos">-17.7%</strong></span></div>
+          <div class="prog-track"><div class="prog-fill light" style="width:82%"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-label"><span>Doors</span><span class="right">$55K vs $68K &nbsp;<strong class="dpos">-18.8%</strong></span></div>
+          <div class="prog-track"><div class="prog-fill light" style="width:81%"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-label"><span>Janitorial</span><span class="right">$42K vs $64K &nbsp;<strong class="dpos">-34.3%</strong></span></div>
+          <div class="prog-track"><div class="prog-fill light" style="width:66%"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-label"><span>Plumbing</span><span class="right">$32K vs $76K &nbsp;<strong class="dpos">-58.2%</strong></span></div>
+          <div class="prog-track"><div class="prog-fill yellow" style="width:42%"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-label"><span>Extermination ⚠</span><span class="right">$58K vs $49K &nbsp;<strong class="dwarn">+18.5%</strong></span></div>
+          <div class="prog-track"><div class="prog-fill warn" style="width:100%"></div></div>
+        </div>
+        <div class="callout">Bar = 2026 spend as % of 2025 Q1. <strong>Shorter = savings.</strong> Orange = over prior year.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-header">Monthly Spend — Facilities vs CAPEX vs PM</div>
+      <div class="chart-wrap"><canvas id="chartMonthly"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Spend Type Comparison — Q1 YOY</div>
+      <div style="padding:0;">
+        <table>
+          <thead>
+            <tr><th>Type</th><th class="num">2026 Q1</th><th class="num">2025 Q1</th><th class="num">$ Change</th><th class="num">% Chg</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Facilities (Maint.)</td>
+              <td class="num">$734,508</td><td class="num">$1,183,763</td>
+              <td class="num dpos">($449,255)</td>
+              <td class="num"><span class="badge pos">-37.9%</span></td>
+            </tr>
+            <tr>
+              <td>Facilities — CAPEX</td>
+              <td class="num">$2,594,126</td><td class="num">$6,185,783</td>
+              <td class="num dpos">($3,591,657)</td>
+              <td class="num"><span class="badge pos">-58.1%</span></td>
+            </tr>
+            <tr>
+              <td>Facilities — PM</td>
+              <td class="num">$166,458</td><td class="num">$128,471</td>
+              <td class="num dneg">+$37,987</td>
+              <td class="num"><span class="badge warn">+29.6%</span></td>
+            </tr>
+            <tr class="total-row">
+              <td>Total Facility Spend</td>
+              <td class="num">$3,495,092</td><td class="num">$7,498,017</td>
+              <td class="num">($4,002,925)</td>
+              <td class="num"><span style="color:var(--yellow);font-weight:800;font-size:15px;">-53.4%</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="padding:14px 16px 8px;">
+          <table style="font-size:12px;">
+            <thead><tr><th>Work Order Volume</th><th class="num">2026</th><th class="num">2025</th><th class="num">Change</th></tr></thead>
+            <tbody>
+              <tr><td>Facilities</td><td class="num">534</td><td class="num">750</td><td class="num"><span class="badge neg">-216</span></td></tr>
+              <tr><td>Facilities — CAPEX</td><td class="num">64</td><td class="num">137</td><td class="num"><span class="badge neg">-73</span></td></tr>
+              <tr><td>Facilities — PM</td><td class="num">200</td><td class="num">188</td><td class="num"><span class="badge warn">+12</span></td></tr>
+              <tr class="total-row"><td>Total WOs</td><td class="num">798</td><td class="num">1,075</td><td class="num">-277</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ====== CATEGORY DETAIL ====== -->
+<div class="tab-panel" id="tab-categories">
+
+  <div class="section-header">
+    <h2>Facilities Maintenance — Category YOY</h2>
+    <div class="section-line"></div>
+    <div class="section-badge">Excludes CAPEX &amp; PM</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">All Categories — Q1 2026 vs Q1 2025 <span class="sub">Facilities type only</span></div>
+    <table>
+      <thead>
+        <tr><th>Category</th><th class="num">2026 Q1</th><th class="num">2025 Q1</th><th class="num">$ Change</th><th class="num">% Change</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Alarms</td><td class="num">$113,142</td><td class="num">$219,349</td><td class="num dpos">($106,207)</td><td class="num"><span class="badge pos">-48.4%</span></td></tr>
+        <tr><td>HVAC</td><td class="num">$105,303</td><td class="num">$120,763</td><td class="num dpos">($15,460)</td><td class="num"><span class="badge pos">-12.8%</span></td></tr>
+        <tr><td>Electrical</td><td class="num">$104,709</td><td class="num">$127,235</td><td class="num dpos">($22,526)</td><td class="num"><span class="badge pos">-17.7%</span></td></tr>
+        <tr><td>Extermination Services</td><td class="num">$58,429</td><td class="num">$49,290</td><td class="num dneg">+$9,139</td><td class="num"><span class="badge warn">+18.5%</span></td></tr>
+        <tr><td>Doors</td><td class="num">$54,891</td><td class="num">$67,634</td><td class="num dpos">($12,743)</td><td class="num"><span class="badge pos">-18.8%</span></td></tr>
+        <tr><td>Janitorial</td><td class="num">$42,048</td><td class="num">$63,994</td><td class="num dpos">($21,946)</td><td class="num"><span class="badge pos">-34.3%</span></td></tr>
+        <tr><td>Fire Suppression</td><td class="num">$38,058</td><td class="num">$42,905</td><td class="num dpos">($4,847)</td><td class="num"><span class="badge pos">-11.3%</span></td></tr>
+        <tr><td>Plumbing</td><td class="num">$31,830</td><td class="num">$76,133</td><td class="num dpos">($44,303)</td><td class="num"><span class="badge pos">-58.2%</span></td></tr>
+        <tr><td>Fencing</td><td class="num">$22,387</td><td class="num">$50,948</td><td class="num dpos">($28,561)</td><td class="num"><span class="badge pos">-56.1%</span></td></tr>
+        <tr><td>Waste</td><td class="num">$14,012</td><td class="num">$34,357</td><td class="num dpos">($20,345)</td><td class="num"><span class="badge pos">-59.2%</span></td></tr>
+        <tr><td>Equipment</td><td class="num">$13,948</td><td class="num">$3,844</td><td class="num dneg">+$10,104</td><td class="num"><span class="badge warn">+262.8%</span></td></tr>
+        <tr><td>General Contractor</td><td class="num">$12,805</td><td class="num">$57,394</td><td class="num dpos">($44,589)</td><td class="num"><span class="badge pos">-77.7%</span></td></tr>
+        <tr><td>Landscaping</td><td class="num">$10,848</td><td class="num">$34,158</td><td class="num dpos">($23,311)</td><td class="num"><span class="badge pos">-68.2%</span></td></tr>
+        <tr><td>Racking</td><td class="num">$9,946</td><td class="num">$73,589</td><td class="num dpos">($63,643)</td><td class="num"><span class="badge pos">-86.5%</span></td></tr>
+        <tr><td>Signage</td><td class="num">$9,902</td><td class="num">$18,796</td><td class="num dpos">($8,894)</td><td class="num"><span class="badge pos">-47.3%</span></td></tr>
+        <tr><td>Roofing</td><td class="num">$9,006</td><td class="num">$21,934</td><td class="num dpos">($12,928)</td><td class="num"><span class="badge pos">-58.9%</span></td></tr>
+        <tr><td>Security</td><td class="num">$7,002</td><td class="num">$23,015</td><td class="num dpos">($16,013)</td><td class="num"><span class="badge pos">-69.6%</span></td></tr>
+        <tr><td>Supplies</td><td class="num">$6,296</td><td class="num">$5,391</td><td class="num dneg">+$905</td><td class="num"><span class="badge neu">+16.8%</span></td></tr>
+        <tr class="total-row">
+          <td>Facilities Total</td>
+          <td class="num">$734,508</td><td class="num">$1,183,763</td>
+          <td class="num">($449,255)</td>
+          <td class="num"><span style="color:var(--yellow);font-weight:800;font-size:15px;">-37.9%</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout" style="margin:14px 0;">
+    <strong>Watch Items:</strong> Extermination (+18.5%) and Equipment (+262.8%) are the only Facilities categories running above 2025 pace. Equipment variance is small in absolute dollars ($10K) and may reflect timing. Extermination ($58K vs $49K) is worth monitoring through Q2.
+  </div>
+
+  <div class="panel" style="margin-top:14px;">
+    <div class="panel-header">Category Spend Chart — Q1 2026 vs Q1 2025</div>
+    <div class="chart-wrap" style="padding:20px;"><canvas id="chartCatBar" style="max-height:320px;"></canvas></div>
+  </div>
+
+</div>
+
+<!-- ====== CAPEX & PM ====== -->
+<div class="tab-panel" id="tab-capex">
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr));">
+    <div class="kpi-card yellow">
+      <div class="kpi-label">CAPEX Q1 2026</div>
+      <div class="kpi-value">$2.594M</div>
+      <div class="kpi-delta pos">▼ 58.1% <span class="sub">vs $6.186M Q1 2025</span></div>
+    </div>
+    <div class="kpi-card yellow">
+      <div class="kpi-label">CAPEX Invoices</div>
+      <div class="kpi-value">64</div>
+      <div class="kpi-delta pos">▼ 73 fewer <span class="sub">vs 137 in Q1 2025</span></div>
+    </div>
+    <div class="kpi-card warn">
+      <div class="kpi-label">PM Spend Q1 2026</div>
+      <div class="kpi-value">$166,458</div>
+      <div class="kpi-delta warn">▲ +29.6% <span class="sub">vs $128,471 Q1 2025</span></div>
+    </div>
+    <div class="kpi-card warn">
+      <div class="kpi-label">PM Invoices</div>
+      <div class="kpi-value">200</div>
+      <div class="kpi-delta warn">▲ +12 <span class="sub">vs 188 in Q1 2025</span></div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <h2>CAPEX Monthly Detail — 2026 YTD</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel" style="margin-bottom:14px;">
+    <div class="panel-header">CAPEX Spend by Month — 2026 vs 2025</div>
+    <table>
+      <thead>
+        <tr><th>Month</th><th class="num">2026 CAPEX</th><th class="num">2025 CAPEX</th><th class="num">$ Change</th><th class="num">% Chg</th></tr>
+      </thead>
+      <tbody>
+        <tr class="hl-row"><td><strong>January</strong></td><td class="num">$67,122</td><td class="num">$2,174,972</td><td class="num dpos">($2,107,850)</td><td class="num"><span class="badge pos">-96.9%</span></td></tr>
+        <tr class="hl-row"><td><strong>February</strong></td><td class="num">$648,549</td><td class="num">$1,899,758</td><td class="num dpos">($1,251,209)</td><td class="num"><span class="badge pos">-65.9%</span></td></tr>
+        <tr class="hl-row"><td><strong>March</strong></td><td class="num">$1,878,454</td><td class="num">$2,111,053</td><td class="num dpos">($232,599)</td><td class="num"><span class="badge pos">-11.0%</span></td></tr>
+        <tr class="total-row"><td>Q1 Total</td><td class="num">$2,594,126</td><td class="num">$6,185,783</td><td class="num">($3,591,657)</td><td class="num"><span style="color:var(--yellow);font-weight:800;">-58.1%</span></td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin:12px;">
+      March 2026 CAPEX of <strong>$1.878M</strong> was the highest month this quarter — largely in line with March 2025 (-11%). The dramatic YTD savings is driven by January (-97%) and February (-66%). CAPEX activity may be ramping as projects initiate.
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-header">PM Spend by Month — 2026 vs 2025</div>
+      <table>
+        <thead><tr><th>Month</th><th class="num">2026 PM</th><th class="num">2025 PM</th><th class="num">Change</th></tr></thead>
+        <tbody>
+          <tr><td>January</td><td class="num">$55,874</td><td class="num">$42,171</td><td class="num"><span class="badge warn">+32.5%</span></td></tr>
+          <tr><td>February</td><td class="num">$49,158</td><td class="num">$34,584</td><td class="num"><span class="badge warn">+42.1%</span></td></tr>
+          <tr><td>March</td><td class="num">$61,427</td><td class="num">$51,716</td><td class="num"><span class="badge warn">+18.8%</span></td></tr>
+          <tr class="total-row"><td>Q1 Total</td><td class="num">$166,458</td><td class="num">$128,471</td><td class="num">+29.6%</td></tr>
+        </tbody>
+      </table>
+      <div class="callout" style="margin:12px;">PM is running elevated across all three months. Higher PM activity may indicate a more proactive maintenance posture this year, which could reduce reactive spend downstream.</div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Avg Invoice Size — By Type</div>
+      <table>
+        <thead><tr><th>Type</th><th class="num">2026 Q1</th><th class="num">2025 Q1</th><th class="num">Change</th></tr></thead>
+        <tbody>
+          <tr><td>Facilities</td><td class="num">$1,375</td><td class="num">$1,578</td><td class="num"><span class="badge pos">-12.9%</span></td></tr>
+          <tr><td>Facilities — PM</td><td class="num">$832</td><td class="num">$683</td><td class="num"><span class="badge warn">+21.8%</span></td></tr>
+          <tr><td>Facilities — CAPEX</td><td class="num">$40,533</td><td class="num">$45,152</td><td class="num"><span class="badge pos">-10.2%</span></td></tr>
+          <tr class="total-row"><td>Overall Avg</td><td class="num">$4,380</td><td class="num">$6,975</td><td class="num">-37.2%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ====== WORK ORDERS ====== -->
+<div class="tab-panel" id="tab-workorders">
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr));">
+    <div class="kpi-card">
+      <div class="kpi-label">Total WOs — 2026 Q1</div>
+      <div class="kpi-value">798</div>
+      <div class="kpi-delta pos">▼ 277 vs Q1 2025 (1,075)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Jan WOs</div>
+      <div class="kpi-value">241</div>
+      <div class="kpi-delta pos">▼ vs 355 in Jan 2025</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Feb WOs</div>
+      <div class="kpi-value">269</div>
+      <div class="kpi-delta pos">▼ vs 386 in Feb 2025</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Mar WOs</div>
+      <div class="kpi-value">288</div>
+      <div class="kpi-delta pos">▼ vs 334 in Mar 2025</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <h2>Work Order Volume — Historical</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">Monthly WO Count — Q1 by Year (2014–2026)</div>
+    <div class="chart-wrap" style="padding:20px;"><canvas id="chartWO" style="max-height:280px;"></canvas></div>
+  </div>
+
+  <div class="two-col" style="margin-top:14px;">
+    <div class="panel">
+      <div class="panel-header">Annual WO Count — All Years</div>
+      <table>
+        <thead><tr><th>Year</th><th class="num">Total WOs</th><th class="num">Avg/Month</th></tr></thead>
+        <tbody>
+          <tr><td>2014</td><td class="num">2,997</td><td class="num">250</td></tr>
+          <tr><td>2015</td><td class="num">3,988</td><td class="num">332</td></tr>
+          <tr><td>2016</td><td class="num">4,218</td><td class="num">352</td></tr>
+          <tr><td>2017</td><td class="num">4,460</td><td class="num">372</td></tr>
+          <tr><td>2018</td><td class="num">4,490</td><td class="num">374</td></tr>
+          <tr><td>2019</td><td class="num">4,453</td><td class="num">371</td></tr>
+          <tr><td>2020</td><td class="num">4,240</td><td class="num">353</td></tr>
+          <tr><td>2021</td><td class="num">4,763</td><td class="num">397</td></tr>
+          <tr><td>2022</td><td class="num">5,420</td><td class="num">452</td></tr>
+          <tr><td>2023</td><td class="num">5,609</td><td class="num">467</td></tr>
+          <tr><td>2024</td><td class="num">5,225</td><td class="num">435</td></tr>
+          <tr><td>2025</td><td class="num">4,663</td><td class="num">389</td></tr>
+          <tr class="hl-row"><td><strong>2026 (Q1 only)</strong></td><td class="num">798</td><td class="num">266</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Q1 WO Count YOY</div>
+      <table>
+        <thead><tr><th>Year</th><th class="num">Jan</th><th class="num">Feb</th><th class="num">Mar</th><th class="num">Q1 Total</th></tr></thead>
+        <tbody>
+          <tr><td>2022</td><td class="num">304</td><td class="num">350</td><td class="num">440</td><td class="num">1,094</td></tr>
+          <tr><td>2023</td><td class="num">388</td><td class="num">340</td><td class="num">452</td><td class="num">1,180</td></tr>
+          <tr><td>2024</td><td class="num">395</td><td class="num">423</td><td class="num">433</td><td class="num">1,251</td></tr>
+          <tr><td>2025</td><td class="num">355</td><td class="num">386</td><td class="num">334</td><td class="num">1,075</td></tr>
+          <tr class="hl-row"><td><strong>2026</strong></td><td class="num">241</td><td class="num">269</td><td class="num">288</td><td class="num">798</td></tr>
+        </tbody>
+      </table>
+      <div class="callout" style="margin:12px;">
+        2026 Q1 volume (798 WOs) is the <strong>lowest Q1 since 2014</strong>. The decline correlates directly with reduced spend across most categories — fewer reactive events, lower CAPEX project activity, or both.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ====== HISTORICAL ====== -->
+<div class="tab-panel" id="tab-history">
+
+  <div class="section-header">
+    <h2>Historical Annual Spend — All Years</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel" style="margin-bottom:14px;">
+    <div class="panel-header">Total Annual Facility Spend 2014–2026 (All Types)</div>
+    <div class="chart-wrap" style="padding:20px;"><canvas id="chartAnnual" style="max-height:300px;"></canvas></div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-header">Annual Totals — All Years</div>
+      <table>
+        <thead><tr><th>Year</th><th class="num">Total Spend</th><th class="num">WOs</th><th class="num">Avg / WO</th></tr></thead>
+        <tbody>
+          <tr><td>2014</td><td class="num">$12,356,704</td><td class="num">2,997</td><td class="num">$4,123</td></tr>
+          <tr><td>2015</td><td class="num">$11,803,028</td><td class="num">3,988</td><td class="num">$2,960</td></tr>
+          <tr><td>2016</td><td class="num">$14,278,037</td><td class="num">4,218</td><td class="num">$3,385</td></tr>
+          <tr><td>2017</td><td class="num">$26,129,812</td><td class="num">4,460</td><td class="num">$5,859</td></tr>
+          <tr><td>2018</td><td class="num">$22,450,211</td><td class="num">4,490</td><td class="num">$5,000</td></tr>
+          <tr><td>2019</td><td class="num">$22,470,092</td><td class="num">4,453</td><td class="num">$5,046</td></tr>
+          <tr><td>2020</td><td class="num">$13,279,530</td><td class="num">4,240</td><td class="num">$3,132</td></tr>
+          <tr><td>2021</td><td class="num">$26,707,836</td><td class="num">4,763</td><td class="num">$5,607</td></tr>
+          <tr><td>2022</td><td class="num">$41,524,242</td><td class="num">5,420</td><td class="num">$7,661</td></tr>
+          <tr><td>2023</td><td class="num">$61,743,339</td><td class="num">5,609</td><td class="num">$11,008</td></tr>
+          <tr><td>2024</td><td class="num">$44,315,137</td><td class="num">5,225</td><td class="num">$8,481</td></tr>
+          <tr><td>2025</td><td class="num">$29,024,197</td><td class="num">4,663</td><td class="num">$6,224</td></tr>
+          <tr class="hl-row"><td><strong>2026 (Q1 YTD)</strong></td><td class="num">$3,495,092</td><td class="num">798</td><td class="num">$4,380</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Annual Spend by Type — 2020–2026</div>
+      <div class="chart-wrap"><canvas id="chartStackType" style="max-height:280px;"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+<footer>
+  <span><strong>McCoy's Building Supply</strong> &nbsp;·&nbsp; Facilities Management</span>
+  <span>Data Source: FEXA WO Management System &nbsp;·&nbsp; YTD Through March 2026 &nbsp;·&nbsp; Does not include CAPEX in Facilities maintenance KPIs unless noted</span>
+</footer>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'categories' && !window.catBarDone) initCatBar();
+  if (id === 'workorders'  && !window.woDone)     initWOChart();
+  if (id === 'history'     && !window.histDone)   initHistCharts();
+}
+
+const G  = '#1B4D2E';
+const GM = '#255f39';
+const GL = '#2d7346';
+const Y  = '#F5C300';
+const YD = '#c9a000';
+const W  = '#f59e0b';
+const GR = '#8f9185';
+
+const tip  = { backgroundColor: G, borderColor: Y, borderWidth: 1, titleColor: Y, bodyColor: '#fff', padding: 10 };
+const tick = { color: '#555750', font: { family: 'Barlow', size: 12 } };
+const grid = '#e8e9e4';
+
+// Dashboard: Category donut
+new Chart(document.getElementById('chartCats'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Alarms','HVAC','Electrical','Extermination','Doors','Janitorial','Fire Suppression','Plumbing','Other'],
+    datasets: [{
+      data: [113142, 105303, 104709, 58429, 54891, 42048, 38058, 31830, 186098],
+      backgroundColor: [G, Y, GM, W, GL, YD, '#4a7c5e', '#7fb08a', GR],
+      borderColor: '#fff', borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true, cutout: '60%',
+    plugins: { tooltip: tip, legend: { position: 'right', labels: { color: '#555750', font: { family: 'Barlow', size: 11 }, boxWidth: 12, padding: 10 } } }
+  }
+});
+
+// Dashboard: Monthly grouped bar
+new Chart(document.getElementById('chartMonthly'), {
+  type: 'bar',
+  data: {
+    labels: ['January', 'February', 'March'],
+    datasets: [
+      { label: 'Facilities',       data: [209116, 265586, 259806], backgroundColor: G,  borderRadius: 3 },
+      { label: 'CAPEX',            data: [67122, 648549, 1878454], backgroundColor: Y,  borderRadius: 3 },
+      { label: 'PM',               data: [55874, 49158, 61427],    backgroundColor: GL, borderRadius: 3 }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { tooltip: tip, legend: { labels: { color: '#555750', font: { family: 'Barlow', size: 12 } } } },
+    scales: {
+      x: { ticks: tick, grid: { color: grid } },
+      y: { ticks: { ...tick, callback: v => '$' + (v/1000).toFixed(0) + 'K' }, grid: { color: grid } }
+    }
+  }
+});
+
+// Category bar chart (lazy)
+function initCatBar() {
+  window.catBarDone = true;
+  new Chart(document.getElementById('chartCatBar'), {
+    type: 'bar',
+    data: {
+      labels: ['Alarms','HVAC','Electrical','Extermination','Doors','Janitorial','Fire Supp.','Plumbing','Fencing','Waste','Gen. Contr.','Landscaping','Racking'],
+      datasets: [
+        { label: 'Q1 2026', data: [113142,105303,104709,58429,54891,42048,38058,31830,22387,14012,12805,10848,9946], backgroundColor: G, borderRadius: 3 },
+        { label: 'Q1 2025', data: [219349,120763,127235,49290,67634,63994,42905,76133,50948,34357,57394,34158,73589], backgroundColor: Y, borderRadius: 3 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { tooltip: tip, legend: { labels: { color: '#555750', font: { family: 'Barlow', size: 12 } } } },
+      scales: {
+        x: { ticks: { ...tick, font: { size: 11 } }, grid: { color: grid } },
+        y: { ticks: { ...tick, callback: v => '$' + (v/1000).toFixed(0) + 'K' }, grid: { color: grid } }
+      }
+    }
+  });
+}
+
+// Work Order chart (lazy)
+function initWOChart() {
+  window.woDone = true;
+  new Chart(document.getElementById('chartWO'), {
+    type: 'bar',
+    data: {
+      labels: ['2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'],
+      datasets: [
+        { label: 'Jan', data: [153,248,231,217,272,283,272,296,304,388,395,355,241], backgroundColor: G, borderRadius: 2 },
+        { label: 'Feb', data: [167,227,300,273,259,283,268,307,350,340,423,386,269], backgroundColor: GL, borderRadius: 2 },
+        { label: 'Mar', data: [160,215,364,410,306,337,325,359,440,452,433,334,288], backgroundColor: (ctx) => ctx.dataIndex === 12 ? Y : YD, borderRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { tooltip: tip, legend: { labels: { color: '#555750', font: { family: 'Barlow', size: 12 } } } },
+      scales: {
+        x: { stacked: true, ticks: tick, grid: { color: grid } },
+        y: { stacked: true, ticks: tick, grid: { color: grid } }
+      }
+    }
+  });
+}
+
+// Historical charts (lazy)
+function initHistCharts() {
+  window.histDone = true;
+
+  new Chart(document.getElementById('chartAnnual'), {
+    type: 'bar',
+    data: {
+      labels: ['2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025','2026*'],
+      datasets: [{
+        label: 'Total Annual Spend',
+        data: [12356704,11803028,14278037,26129812,22450211,22470092,13279530,26707836,41524242,61743339,44315137,29024197,3495092],
+        backgroundColor: (ctx) => ctx.dataIndex === 12 ? Y : G,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: tip },
+      scales: {
+        x: { ticks: tick, grid: { color: grid } },
+        y: { ticks: { ...tick, callback: v => '$' + (v/1000000).toFixed(0) + 'M' }, grid: { color: grid } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('chartStackType'), {
+    type: 'bar',
+    data: {
+      labels: ['2020','2021','2022','2023','2024','2025','2026*'],
+      datasets: [
+        { label: 'Facilities', data: [3249170,3991683,4037789,5863669,5202787,4877415,734508],  backgroundColor: G,  borderRadius: 0 },
+        { label: 'CAPEX',      data: [9334943,21942410,36565977,54829579,37936518,23116425,2594126], backgroundColor: Y,  borderRadius: 0 },
+        { label: 'PM',         data: [695417,773743,920475,1050091,1175832,1030357,166458],    backgroundColor: GL, borderRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { tooltip: tip, legend: { labels: { color: '#555750', font: { family: 'Barlow', size: 12 } } } },
+      scales: {
+        x: { stacked: true, ticks: tick, grid: { color: grid } },
+        y: { stacked: true, ticks: { ...tick, callback: v => '$' + (v/1000000).toFixed(0) + 'M' }, grid: { color: grid } }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
