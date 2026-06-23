@@ -1,735 +1,682 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>McCoy's Facility Spend Dashboard — YTD May 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<style>
-  :root {
-    --green:       #1B4D2E;
-    --green-mid:   #255f39;
-    --green-light: #2d7346;
-    --green-pale:  #eaf3ed;
-    --yellow:      #F5C300;
-    --yellow-dark: #c9a000;
-    --yellow-pale: #fef9e0;
-    --white:       #ffffff;
-    --gray-50:     #f4f5f2;
-    --gray-100:    #e8e9e4;
-    --gray-200:    #d0d2cb;
-    --gray-400:    #8f9185;
-    --gray-600:    #555750;
-    --gray-800:    #2c2e28;
-    --gray-900:    #1a1c18;
-    --pos:         #1B4D2E;
-    --pos-bg:      #eaf3ed;
-    --neg:         #b91c1c;
-    --neg-bg:      #fef2f2;
-    --warn:        #92400e;
-    --warn-bg:     #fffbeb;
-    --text:        #1a1c18;
-    --muted:       #555750;
-    --light:       #8f9185;
-    --border:      #d8dbd2;
-    --shadow:      0 1px 4px rgba(0,0,0,0.07);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--gray-50); color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; line-height: 1.5; }
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>McCoy's Report Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  header { background: var(--green); color: var(--white); box-shadow: 0 3px 16px rgba(0,0,0,0.25); }
-  .header-top { display: flex; align-items: center; justify-content: space-between; padding: 18px 40px 14px; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.12); }
-  .logo-area { display: flex; align-items: center; gap: 16px; }
-  .logo-badge { background: var(--yellow); color: var(--green); font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 20px; padding: 7px 16px; border-radius: 4px; text-transform: uppercase; line-height: 1; }
-  .hdr-div { width: 1px; height: 38px; background: rgba(255,255,255,0.25); }
-  .header-title { font-family: 'Barlow Condensed', sans-serif; font-size: 25px; font-weight: 800; text-transform: uppercase; line-height: 1.1; }
-  .header-title span { color: var(--yellow); }
-  .header-sub { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 3px; }
-  .report-badge { background: var(--yellow); color: var(--green); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: 0.8px; text-transform: uppercase; padding: 7px 16px; border-radius: 4px; white-space: nowrap; }
+    :root {
+      --green:   #2d6a2d;
+      --green-dk:#1f4d1f;
+      --gold:    #f5a800;
+      --bg:     #f4f5f7;
+      --card:   #ffffff;
+      --text:   #1a1a2e;
+      --muted:  #6b7280;
+      --border: #e5e7eb;
+      --sidebar-w: 240px;
+    }
 
-  .nav-tabs { display: flex; padding: 6px 40px 0; }
-  .nav-tab { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(255,255,255,0.60); padding: 9px 20px; cursor: pointer; border: none; background: transparent; border-bottom: 3px solid transparent; transition: all 0.15s; }
-  .nav-tab:hover { color: var(--white); background: rgba(255,255,255,0.07); }
-  .nav-tab.active { color: var(--yellow); border-bottom-color: var(--yellow); background: rgba(245,195,0,0.08); }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
 
-  main { padding: 28px 40px 60px; }
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
+    /* TOPBAR */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--green); color: #fff;
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 24px; height: 60px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    }
+    .topbar-logo { font-family: 'DM Serif Display', serif; font-size: 20px; letter-spacing: .02em; white-space: nowrap; }
+    .topbar-logo span { color: var(--gold); }
+    .topbar-divider { width: 1px; height: 28px; background: rgba(255,255,255,.3); }
+    .topbar-label { font-size: 14px; font-weight: 600; opacity: .85; flex: 1; }
+    .search-wrap { position: relative; }
+    .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; stroke: rgba(255,255,255,.7); }
+    #search-input {
+      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+      border-radius: 8px; padding: 7px 12px 7px 34px;
+      color: #fff; font-family: inherit; font-size: 13px; width: 220px;
+      outline: none; transition: background .2s;
+    }
+    #search-input::placeholder { color: rgba(255,255,255,.6); }
+    #search-input:focus { background: rgba(255,255,255,.25); }
+    .hamburger { display: none; background: none; border: none; color: #fff; cursor: pointer; padding: 4px; }
+    .hamburger svg { width: 22px; height: 22px; }
 
-  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(188px, 1fr)); gap: 12px; margin-bottom: 24px; }
-  .kpi-card { background: var(--white); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-  .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--green); }
-  .kpi-card.yellow::after { background: var(--yellow); }
-  .kpi-card.warn::after   { background: #f59e0b; }
-  .kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  .kpi-value { font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 800; line-height: 1; color: var(--gray-900); }
-  .kpi-delta { margin-top: 7px; font-size: 12px; font-weight: 600; }
-  .kpi-delta.pos  { color: var(--pos); }
-  .kpi-delta.neg  { color: var(--neg); }
-  .kpi-delta.warn { color: var(--warn); }
-  .kpi-delta .sub { color: var(--light); font-weight: 400; }
+    /* LAYOUT */
+    .body-wrap { display: flex; flex: 1; }
 
-  .section-header { display: flex; align-items: center; gap: 12px; margin: 26px 0 14px; }
-  .section-header h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--green); white-space: nowrap; }
-  .section-line { flex: 1; height: 1px; background: var(--border); }
-  .section-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: var(--green); text-transform: uppercase; background: var(--yellow-pale); border: 1px solid var(--yellow-dark); padding: 2px 10px; border-radius: 3px; white-space: nowrap; }
+    /* OVERLAY */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 90; }
+    .overlay.open { display: block; }
 
-  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-  @media (max-width: 900px) { .two-col, .three-col { grid-template-columns: 1fr; } }
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: #fff; border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 20px 0; position: sticky; top: 60px;
+      height: calc(100vh - 60px); overflow-y: auto;
+    }
+    .sidebar-stats {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; padding: 0 16px 16px;
+      border-bottom: 1px solid var(--border); margin-bottom: 16px;
+    }
+    .stat-box {
+      background: var(--bg); border-radius: 8px; padding: 10px;
+      text-align: center; display: flex; flex-direction: column; gap: 2px;
+    }
+    .stat-box strong { font-size: 20px; font-weight: 700; color: var(--green); }
+    .stat-box span { font-size: 11px; color: var(--muted); font-weight: 500; }
 
-  .panel { background: var(--white); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); }
-  .panel-header { background: var(--green); color: var(--white); padding: 10px 18px; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
-  .panel-header .sub  { font-family: 'Barlow', sans-serif; font-size: 11px; color: rgba(255,255,255,0.55); text-transform: none; font-weight: 400; letter-spacing: 0; }
-  .panel-header .ytag { background: var(--yellow); color: var(--green); font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 3px; text-transform: uppercase; font-family: 'Barlow Condensed', sans-serif; }
-  .panel-body { padding: 18px; }
+    .nav-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 0 16px 8px; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--muted); padding: 9px 12px; background: var(--gray-50); border-bottom: 2px solid var(--border); }
-  th.num { text-align: right; }
-  td { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
-  td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--green-pale); }
-  .total-row td { font-weight: 700; background: var(--green) !important; color: var(--white) !important; border-top: 2px solid var(--green-mid); }
-  .total-row td.num { color: var(--yellow) !important; font-size: 15px; }
-  .total-row:hover td { background: var(--green) !important; }
-  .hl-row td { background: var(--yellow-pale) !important; font-weight: 700; }
-  .hl-row td.num { color: var(--green); font-size: 15px; font-weight: 800; }
-  .warn-row td { background: var(--warn-bg) !important; }
-  .restate-row td { background: #f0fdf4 !important; font-style: italic; }
+    .nav-btn {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; padding: 10px 16px;
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; font-size: 13px; font-weight: 500;
+      color: var(--muted); text-align: left; transition: all .15s;
+      border-left: 3px solid transparent;
+    }
+    .nav-btn:hover { background: var(--bg); color: var(--text); }
+    .nav-btn.active { background: #f0f7f0; color: var(--green); border-left-color: var(--green); font-weight: 600; }
+    .nav-icon { font-size: 15px; }
+    .nav-count {
+      margin-left: auto; background: var(--bg); border-radius: 999px;
+      padding: 2px 7px; font-size: 11px; font-weight: 700; color: var(--muted);
+    }
+    .nav-btn.active .nav-count { background: #d6ebd6; color: var(--green); }
 
-  .dpos  { color: var(--pos);  font-weight: 600; }
-  .dneg  { color: var(--neg);  font-weight: 600; }
-  .dwarn { color: var(--warn); font-weight: 600; }
+    .sidebar-footer { margin-top: auto; padding: 16px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); line-height: 1.5; }
 
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; }
-  .badge.pos  { background: var(--pos-bg);  color: var(--pos); }
-  .badge.neg  { background: var(--neg-bg);  color: var(--neg); }
-  .badge.warn { background: var(--warn-bg); color: var(--warn); }
-  .badge.neu  { background: var(--gray-100); color: var(--gray-600); }
-  .badge.rest { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    /* FAB */
+    .fab { display: none; }
 
-  .chart-wrap { padding: 16px 20px; }
-  .chart-wrap canvas { max-height: 260px; }
+    /* CONTENT */
+    .content { flex: 1; padding: 32px; min-width: 0; }
 
-  .prog-row { margin: 9px 0; }
-  .prog-label { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; font-weight: 500; }
-  .prog-label .right { color: var(--muted); font-weight: 400; }
-  .prog-track { height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
-  .prog-fill        { height: 100%; border-radius: 4px; background: var(--green); transition: width 0.7s ease; }
-  .prog-fill.yellow { background: var(--yellow-dark); }
-  .prog-fill.light  { background: var(--green-light); }
-  .prog-fill.warn   { background: #f59e0b; }
+    /* TAB PANELS */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
-  .callout { background: var(--yellow-pale); border-left: 4px solid var(--yellow); border-radius: 0 4px 4px 0; padding: 10px 14px; font-size: 12px; color: var(--muted); margin-top: 12px; }
-  .callout strong { color: var(--green); }
-  .callout.pos { background: var(--pos-bg); border-left-color: var(--pos); }
-  .callout.pos strong { color: var(--pos); }
-  .callout.info { background: #eff6ff; border-left-color: #3b82f6; }
-  .callout.info strong { color: #1e40af; }
+    .panel-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 24px; gap: 16px;
+    }
+    .panel-eyebrow { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .category-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    .category-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--green); }
+    .panel-header h2 { font-size: 22px; font-weight: 700; color: var(--text); }
+    .panel-header p { font-size: 14px; color: var(--muted); margin-top: 4px; }
+    .report-count-badge {
+      background: #f0f7f0; color: var(--green); border: 1px solid rgba(45,106,45,.15);
+      border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 700;
+      white-space: nowrap; flex-shrink: 0;
+    }
 
-  footer { background: var(--green); border-top: 4px solid var(--yellow); padding: 14px 40px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: rgba(255,255,255,0.55); }
-  footer strong { color: var(--yellow); }
-</style>
+    /* REPORT GRID */
+    .report-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+
+    .report-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px; display: flex; flex-direction: column; gap: 10px;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .report-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); transform: translateY(-1px); }
+
+    .card-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pill {
+      border-radius: 999px; padding: 4px 10px;
+      font-size: 11px; font-weight: 700; letter-spacing: .03em;
+    }
+    .pill-status { background: #e8f5e9; color: #1b5e20; border: 1px solid rgba(27,94,32,.15); }
+    .pill-cadence { background: #e8f0fe; color: #1a237e; border: 1px solid rgba(26,35,126,.15); }
+
+    .report-card h3 { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .report-card p { font-size: 13px; color: var(--muted); line-height: 1.55; flex: 1; }
+
+    .report-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--green); font-size: 13px; font-weight: 600;
+      text-decoration: none; margin-top: 4px; transition: gap .15s;
+    }
+    .report-link svg { width: 14px; height: 14px; }
+    .report-link:hover { gap: 9px; }
+
+    /* SEARCH */
+    #all-search-results { display: none; }
+    #all-search-results.active { display: block; }
+    #empty-state { display: none; padding: 48px; text-align: center; color: var(--muted); }
+    #empty-state svg { width: 40px; height: 40px; margin: 0 auto 12px; display: block; stroke: var(--border); }
+    #search-result-count { font-size: 13px; color: var(--muted); }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed; left: -260px; top: 0; height: 100vh;
+        width: 260px; z-index: 95; transition: left .25s ease;
+        padding-top: 80px;
+      }
+      .sidebar.open { left: 0; }
+      .body-wrap { flex-direction: column; }
+      .content { padding: 20px; }
+      .hamburger { display: flex; }
+      .topbar-label { display: none; }
+      #search-input { width: 160px; }
+      .fab {
+        display: flex; position: fixed; bottom: 20px; right: 20px; z-index: 150;
+        background: var(--green); color: #fff; border: none; border-radius: 999px;
+        padding: 12px 18px; font-family: inherit; font-size: 14px; font-weight: 700;
+        cursor: pointer; box-shadow: 0 4px 16px rgba(45,106,45,.4); gap: 6px; align-items: center;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="header-top">
-    <div class="logo-area">
-      <div class="logo-badge">McCoy's</div>
-      <div class="hdr-div"></div>
-      <div>
-        <div class="header-title"><span>Facility</span> Spend Dashboard</div>
-        <div class="header-sub">YTD 2026 vs. 2025 &nbsp;·&nbsp; Through May &nbsp;·&nbsp; Source: FEXA WO Management System &nbsp;·&nbsp; Includes restated Jan–Apr figures for late invoices</div>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div class="topbar-logo">McCoy's <span>Report Hub</span></div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-label" id="topbar-label">Hot Items</div>
+    <div class="search-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search-input" placeholder="Search reports…" autocomplete="off" />
+    </div>
+  </header>
+
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <div class="body-wrap">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-stats">
+        <div class="stat-box"><strong>19</strong><span>Reports</span></div>
+        <div class="stat-box"><strong>6</strong><span>Categories</span></div>
+        <div class="stat-box"><strong>5</strong><span>Weekly</span></div>
+        <div class="stat-box"><strong>6</strong><span>Monthly</span></div>
       </div>
-    </div>
-    <div class="report-badge">Month 5 — May 2026</div>
-  </div>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="switchTab('dashboard',this)">Dashboard</button>
-    <button class="nav-tab" onclick="switchTab('categories',this)">Category Detail</button>
-    <button class="nav-tab" onclick="switchTab('capex',this)">CAPEX &amp; PM</button>
-    <button class="nav-tab" onclick="switchTab('workorders',this)">Work Orders</button>
-    <button class="nav-tab" onclick="switchTab('history',this)">Historical Trends</button>
-  </div>
-</header>
 
-<main>
+      <div class="nav-label">Report Categories</div>
 
-<!-- ====== DASHBOARD ====== -->
-<div class="tab-panel active" id="tab-dashboard">
+      <button class="nav-btn active" data-tab="hot-items">
+        <span class="nav-icon">🔥</span>
+        Hot Items
+        <span class="nav-count">1</span>
+      </button>
 
-  <div class="callout info" style="margin-bottom:20px;">
-    <strong>ℹ️ Restated Data:</strong> This report reloaded all 2026 YTD data through May to capture any late-arriving invoices. Prior months show minor adjustments — largest restatement was January Facilities (+$1,841) and March PM (+$1,935). All figures below reflect the fully restated YTD totals.
-  </div>
+      <button class="nav-btn" data-tab="fleet-efficiency">
+        <span class="nav-icon">🚛</span>
+        Fleet Efficiency
+        <span class="nav-count">5</span>
+      </button>
 
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-label">Facilities Spend (Excl. CAPEX)</div>
-      <div class="kpi-value">$1.305M</div>
-      <div class="kpi-delta pos">▼ $970K saved <span class="sub">vs 2025 YTD ($2.276M)</span></div>
-    </div>
-    <div class="kpi-card yellow">
-      <div class="kpi-label">CAPEX Spend YTD</div>
-      <div class="kpi-value">$4.418M</div>
-      <div class="kpi-delta pos">▼ $6.793M <span class="sub">vs 2025 YTD ($11.211M)</span></div>
-    </div>
-    <div class="kpi-card warn">
-      <div class="kpi-label">Facilities PM Spend</div>
-      <div class="kpi-value">$369.8K</div>
-      <div class="kpi-delta warn">▲ +$62,612 <span class="sub">vs 2025 YTD ($307K) ⚠</span></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Total Facility Spend</div>
-      <div class="kpi-value">$6.093M</div>
-      <div class="kpi-delta pos">▼ $7.701M <span class="sub">vs 2025 YTD ($13.794M)</span></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Work Orders YTD</div>
-      <div class="kpi-value">1,459</div>
-      <div class="kpi-delta pos">▼ 498 WOs <span class="sub">vs 2025 YTD (1,957)</span></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Avg Facilities Invoice</div>
-      <div class="kpi-value">$1,439</div>
-      <div class="kpi-delta pos">▼ $317 <span class="sub">vs 2025 YTD ($1,756)</span></div>
-    </div>
-    <div class="kpi-card warn">
-      <div class="kpi-label">Avg PM Invoice</div>
-      <div class="kpi-value">$864</div>
-      <div class="kpi-delta warn">▲ +$86 <span class="sub">vs 2025 YTD ($778) ⚠</span></div>
-    </div>
-    <div class="kpi-card yellow">
-      <div class="kpi-label">Avg CAPEX Invoice</div>
-      <div class="kpi-value">$35,628</div>
-      <div class="kpi-delta pos">▼ $6,519 <span class="sub">vs 2025 YTD ($42,147)</span></div>
-    </div>
-  </div>
+      <button class="nav-btn" data-tab="fleet-maintenance">
+        <span class="nav-icon">🔧</span>
+        Fleet Maintenance
+        <span class="nav-count">3</span>
+      </button>
 
-  <div class="callout pos" style="margin-bottom:20px;">
-    <strong>✓ Facilities maintenance savings widening:</strong> May added another $303K in maintenance spend vs $483K in May 2025 (−37.2%). The YTD savings gap has now grown to $970K (−42.6%), the strongest relative advantage since January. CAPEX is also running 60.6% below last year's pace through five months.
-  </div>
+      <button class="nav-btn" data-tab="facilities-operations">
+        <span class="nav-icon">🏢</span>
+        Facilities Operations
+        <span class="nav-count">4</span>
+      </button>
 
-  <div class="section-header">
-    <h2>Spend Breakdown</h2>
-    <div class="section-line"></div>
-    <div class="section-badge">YTD May 2026 — Restated</div>
-  </div>
+      <button class="nav-btn" data-tab="budgeting-and-forecasting">
+        <span class="nav-icon">📊</span>
+        Budgeting &amp; Forecasting
+        <span class="nav-count">3</span>
+      </button>
 
-  <div class="two-col">
-    <div class="panel">
-      <div class="panel-header">Facilities Spend by Category <span class="sub">YTD May 2026</span></div>
-      <div class="chart-wrap"><canvas id="chartCats"></canvas></div>
-    </div>
-    <div class="panel">
-      <div class="panel-header">Top Categories — 2026 vs 2025 YTD <span class="ytag">Maint. −42.6% ✓</span></div>
-      <div class="panel-body" style="padding-top:12px;">
-        <div class="prog-row">
-          <div class="prog-label"><span>HVAC</span><span class="right">$318K vs $327K &nbsp;<strong class="dpos">-2.9%</strong></span></div>
-          <div class="prog-track"><div class="prog-fill" style="width:97%"></div></div>
-        </div>
-        <div class="prog-row">
-          <div class="prog-label"><span>Alarms</span><span class="right">$186K vs $336K &nbsp;<strong class="dpos">-44.6%</strong></span></div>
-          <div class="prog-track"><div class="prog-fill" style="width:55%"></div></div>
-        </div>
-        <div class="prog-row">
-          <div class="prog-label"><span>Electrical</span><span class="right">$154K vs $236K &nbsp;<strong class="dpos">-34.9%</strong></span></div>
-          <div class="prog-track"><div class="prog-fill light" style="width:65%"></div></div>
-        </div>
-        <div class="prog-row">
-          <div class="prog-label"><span>Extermination ⚠</span><span class="right">$89K vs $71K &nbsp;<strong class="dwarn">+25.8%</strong></span></div>
-          <div class="prog-track"><div class="prog-fill warn" style="width:100%"></div></div>
-        </div>
-        <div class="prog-row">
-          <div class="prog-label"><span>Doors</span><span class="right">$80K vs $99K &nbsp;<strong class="dpos">-19.9%</strong></span></div>
-          <div class="prog-track"><div class="prog-fill light" style="width:80%"></div></div>
-        </div>
-        <div class="prog-row">
-          <div class="prog-label"><span>Fire Suppression</span><span class="right">$65K vs $172K &nbsp;<strong class="dpos">-62.0%</strong></span></div>
-          <div class="prog-track"><div class="prog-fill yellow" style="width:38%"></div></div>
-        </div>
-        <div class="prog-row">
-          <div class="prog-label"><span>General Contractor</span><span class="right">$36K vs $155K &nbsp;<strong class="dpos">-77.1%</strong></span></div>
-          <div class="prog-track"><div class="prog-fill light" style="width:23%"></div></div>
-        </div>
-        <div class="callout">Bar = 2026 as % of 2025 YTD. <strong>Shorter = savings.</strong> Orange = over prior year.</div>
+      <button class="nav-btn" data-tab="capital-projects">
+        <span class="nav-icon">🏗️</span>
+        Capital Projects
+        <span class="nav-count">1</span>
+      </button>
+
+      <div class="sidebar-footer">
+        Store Development &amp; Fleet Report Hub<br>
+        Links open in a new tab
       </div>
-    </div>
-  </div>
+    </nav>
 
-  <div class="two-col">
-    <div class="panel">
-      <div class="panel-header">Monthly Spend — Facilities vs CAPEX vs PM</div>
-      <div class="chart-wrap"><canvas id="chartMonthly"></canvas></div>
-    </div>
-    <div class="panel">
-      <div class="panel-header">Spend Type Comparison — YTD YOY</div>
-      <div style="padding:0;">
-        <table>
-          <thead>
-            <tr><th>Type</th><th class="num">2026 YTD</th><th class="num">2025 YTD</th><th class="num">$ Change</th><th class="num">% Chg</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Facilities (Maint.)</td>
-              <td class="num">$1,305,423</td><td class="num">$2,275,547</td>
-              <td class="num dpos">($970,124)</td>
-              <td class="num"><span class="badge pos">-42.6%</span></td>
-            </tr>
-            <tr>
-              <td>Facilities — CAPEX</td>
-              <td class="num">$4,417,919</td><td class="num">$11,211,115</td>
-              <td class="num dpos">($6,793,196)</td>
-              <td class="num"><span class="badge pos">-60.6%</span></td>
-            </tr>
-            <tr class="warn-row">
-              <td>Facilities — PM ⚠</td>
-              <td class="num">$369,827</td><td class="num">$307,215</td>
-              <td class="num dneg">+$62,612</td>
-              <td class="num"><span class="badge warn">+20.4%</span></td>
-            </tr>
-            <tr class="total-row">
-              <td>Total Facility Spend</td>
-              <td class="num">$6,093,170</td><td class="num">$13,793,877</td>
-              <td class="num">($7,700,707)</td>
-              <td class="num"><span style="color:var(--yellow);font-weight:800;font-size:15px;">-55.8%</span></td>
-            </tr>
-          </tbody>
-        </table>
-        <div style="padding:14px 16px 8px;">
-          <table style="font-size:12px;">
-            <thead><tr><th>Work Order Volume</th><th class="num">2026</th><th class="num">2025</th><th class="num">Change</th></tr></thead>
-            <tbody>
-              <tr><td>Facilities</td><td class="num">907</td><td class="num">1,296</td><td class="num"><span class="badge neg">-389</span></td></tr>
-              <tr><td>Facilities — CAPEX</td><td class="num">124</td><td class="num">266</td><td class="num"><span class="badge neg">-142</span></td></tr>
-              <tr><td>Facilities — PM</td><td class="num">428</td><td class="num">395</td><td class="num"><span class="badge warn">+33</span></td></tr>
-              <tr class="total-row"><td>Total WOs</td><td class="num">1,459</td><td class="num">1,957</td><td class="num">-498</td></tr>
-            </tbody>
-          </table>
+    <!-- CONTENT -->
+    <main class="content">
+
+      <!-- SEARCH RESULTS PANEL -->
+      <section id="all-search-results" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Search Results</h2>
+            <p id="search-result-count"></p>
+          </div>
         </div>
-      </div>
-    </div>
+        <div class="report-grid" id="search-grid"></div>
+        <div id="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <p>No reports matched your search.</p>
+        </div>
+      </section>
+
+      <!-- HOT ITEMS -->
+      <section id="hot-items" class="tab-panel active">
+        <div class="panel-header">
+          <div>
+            <div class="panel-eyebrow"><span class="category-dot" style="background:#c47f00;"></span><span class="category-label" style="color:#c47f00;">Hot Items</span></div>
+            <h2>Hot Items</h2>
+            <p>Priority issues and escalated items requiring immediate attention.</p>
+          </div>
+          <span class="report-count-badge">1 report</span>
+        </div>
+        <div class="report-grid">
+
+          <article class="report-card" data-title="hot issues tracker">
+            <div class="card-pills">
+              <span class="pill" style="background:#e8f5e9;color:#1b5e20;border:1px solid rgba(27,94,32,.15);font-size:11px;font-weight:700;letter-spacing:.03em;padding:4px 10px;border-radius:999px;">🟢 Live</span>
+              <span class="pill" style="background:#fff8e1;color:#7a5000;border:1px solid rgba(196,127,0,0.25);font-size:11px;font-weight:700;letter-spacing:.03em;padding:4px 10px;border-radius:999px;">🔥 High Priority</span>
+            </div>
+            <h3>Hot Issues Tracker</h3>
+            <p>Tracks high-priority operational issues across departments, surfacing escalated items that require immediate follow-up and resolution.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Hot-Issues-Tracker/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- FLEET EFFICIENCY -->
+      <section id="fleet-efficiency" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-eyebrow"><span class="category-dot"></span><span class="category-label">Fleet Efficiency</span></div>
+            <h2>Fleet Efficiency</h2>
+            <p>Utilization analysis and cost-per-mile benchmarking across fleet assets.</p>
+          </div>
+          <span class="report-count-badge">5 reports</span>
+        </div>
+        <div class="report-grid">
+
+          <article class="report-card" data-title="forklift utilization report">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/11/2026</span>
+              <span class="pill pill-cadence">Monthly Update</span>
+            </div>
+            <h3>Forklift Utilization Report</h3>
+            <p>Analyzes forklift utilization across locations, identifying underutilized assets and opportunities for redeployment, reduction, or lifecycle optimization.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Forklift-Utilization-Report/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+          <article class="report-card" data-title="truck utilization">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/16/2026</span>
+              <span class="pill pill-cadence">Monthly Update</span>
+            </div>
+            <h3>Truck Utilization</h3>
+            <p>Evaluates truck utilization across routes and locations using deliveries, miles, and time metrics to identify inefficiencies and optimization opportunities.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Fleet-Utilization-TWRE/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+          <article class="report-card" data-title="distribution forklift utilization">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/2/2026</span>
+              <span class="pill pill-cadence">Monthly Update</span>
+            </div>
+            <h3>Distribution Forklift Utilization</h3>
+            <p>Analyzes distribution forklift utilization across locations, identifying underutilized assets and opportunities for redeployment, reduction, or lifecycle optimization.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Distribution-Forklift-Utilization-/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+          <article class="report-card" data-title="distribution cpm analysis">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 5/29/2026</span>
+              <span class="pill pill-cadence">Monthly Update</span>
+            </div>
+            <h3>Distribution CPM Analysis</h3>
+            <p>Tracks the 3-year cost-per-mile trends across all three Distribution facilities, providing monthly benchmarking data to evaluate internal fleet performance against 3PL alternatives.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Distribution-CPM/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+          <article class="report-card" data-title="distribution spend by category">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/4/2026</span>
+              <span class="pill pill-cadence">Monthly Update</span>
+            </div>
+            <h3>Distribution Spend By Category</h3>
+            <p>Covers two main areas: Fleet Overview — overall subcontractor spend, category breakdown, fuel (WEX/Fill Rite), and work order data sourced from Fexa, going back to 2023. Asset Details — individual asset performance under the location tab, covering the full life of each asset.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Distribution-Fleet-Spend-By-Category/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+        </div>
+      </section>
+
+      <!-- FLEET MAINTENANCE -->
+      <section id="fleet-maintenance" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-eyebrow"><span class="category-dot"></span><span class="category-label">Fleet Maintenance</span></div>
+            <h2>Fleet Maintenance</h2>
+            <p>Work order follow-up, PM compliance, and spend tracking.</p>
+          </div>
+          <span class="report-count-badge">3 reports</span>
+        </div>
+        <div class="report-grid">
+
+          <article class="report-card" data-title="fleet work order follow-up">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/15/2026</span>
+              <span class="pill pill-cadence">Weekly Update</span>
+            </div>
+            <h3>Fleet Work Order Follow-Up</h3>
+            <p>Tracks open fleet work orders by age and status, flagging overdue items and follow-up actions needed to keep maintenance on schedule.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Fleet-WO-Follow-Up/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+          <article class="report-card" data-title="pm compliance dashboard">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/15/2026</span>
+              <span class="pill pill-cadence">Weekly Update</span>
+            </div>
+            <h3>PM Compliance Dashboard</h3>
+            <p>Monitors preventive maintenance compliance rates across the fleet, identifying locations and asset types falling behind on scheduled service intervals.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/PM-Compliance-Dashboard/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+          <article class="report-card" data-title="fleet spend yoy report">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 5/27/2026</span>
+              <span class="pill pill-cadence">Monthly Update</span>
+            </div>
+            <h3>Fleet Spend YOY Report</h3>
+            <p>Tracks year-over-year fleet spend trends, highlighting changes in maintenance, parts, and operating costs.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Fleet-Spend-Report-YOY/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- FACILITIES OPERATIONS -->
+      <section id="facilities-operations" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-eyebrow"><span class="category-dot"></span><span class="category-label">Facilities Operations</span></div>
+            <h2>Facilities Operations</h2>
+            <p>Work order tracking, facilities spend analysis, and provider references.</p>
+          </div>
+          <span class="report-count-badge">4 reports</span>
+        </div>
+        <div class="report-grid">
+          <article class="report-card" data-title="facilities work order follow-up">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/15/2026</span>
+              <span class="pill pill-cadence">Weekly Update</span>
+            </div>
+            <h3>Facilities Work Order Follow-Up</h3>
+            <p>Tracks facilities work order aging, follow-up activity, and missed actions to support timely resolution across locations.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Facilities-WO-Follow-Up-Report/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+          <article class="report-card" data-title="facilities spend dashboard">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/9/2026</span>
+              <span class="pill pill-cadence">Monthly Update</span>
+            </div>
+            <h3>Facilities Spend Dashboard</h3>
+            <p>Provides a comprehensive view of facilities-related spend across locations, tracking costs by category to identify trends and control expenditures.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Facility-Spend-Dashboard/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+          <article class="report-card" data-title="electrical provider search">
+            <div class="card-pills">
+              <span class="pill pill-status">Current</span>
+              <span class="pill pill-cadence">Reference</span>
+            </div>
+            <h3>Electrical Provider Search</h3>
+            <p>Lists electrical provider, ESID number, and outage hotline for each location — a quick reference for facilities teams managing outages and provider contacts.</p>
+            <a class="report-link" href="https://smccormick50.github.io/Copy-of-Electricity-Provider-/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+          <article class="report-card" data-title="racking inventory management">
+            <div class="card-pills">
+              <span class="pill pill-status">Current</span>
+              <span class="pill pill-cadence">Reference</span>
+            </div>
+            <h3>Racking Inventory Management</h3>
+            <p>Manages racking inventory for racking repairs performed by internal teams.</p>
+            <a class="report-link" href="https://smccormick50.github.io/McCoy-Racking-/login.html" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+        </div>
+      </section>
+
+      <!-- BUDGETING & FORECASTING -->
+      <section id="budgeting-and-forecasting" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-eyebrow"><span class="category-dot"></span><span class="category-label">Budgeting &amp; Forecasting</span></div>
+            <h2>Budgeting &amp; Forecasting</h2>
+            <p>Fuel trends, spend proposals, and fleet lifecycle planning.</p>
+          </div>
+          <span class="report-count-badge">3 reports</span>
+        </div>
+        <div class="report-grid">
+
+          <article class="report-card" data-title="mtd fuel trends">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/15/2026</span>
+              <span class="pill pill-cadence">Monthly Update</span>
+            </div>
+            <h3>MTD Fuel Trends</h3>
+            <p>Monitors month-to-date fuel consumption and cost trends across the fleet, surfacing anomalies and location-level variances to support budget management.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/MTD-Fuel-Trends/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+          <article class="report-card" data-title="additional spend proposal">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/9/2026</span>
+              <span class="pill pill-cadence">Strategic Analysis</span>
+            </div>
+            <h3>Additional Spend Proposal</h3>
+            <p>Evaluates fleet replacement opportunities by modeling emissions impact, revenue implications, and pricing scenarios to support capital allocation decisions.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Fleet-Replacement-Opportunity---Emissions-REV-Pricing/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+          <article class="report-card" data-title="fleet lifecycle budget planning">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/10/2026</span>
+              <span class="pill pill-cadence">Quarterly Update</span>
+            </div>
+            <h3>Fleet Lifecycle &amp; Budget Planning</h3>
+            <p>Supports long-range fleet planning by tracking asset age, replacement timelines, and projected capital needs to guide budget strategy and procurement decisions.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Fleet-Lifecycle-Budget/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- CAPITAL PROJECTS -->
+      <section id="capital-projects" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-eyebrow"><span class="category-dot"></span><span class="category-label">Capital Projects</span></div>
+            <h2>Capital Projects</h2>
+            <p>Project tracking and progress summaries.</p>
+          </div>
+          <span class="report-count-badge">1 report</span>
+        </div>
+        <div class="report-grid">
+
+          <article class="report-card" data-title="project summary and progress">
+            <div class="card-pills">
+              <span class="pill pill-status">Updated 6/17/2026</span>
+              <span class="pill pill-cadence">Weekly Update</span>
+            </div>
+            <h3>Project Summary &amp; Progress</h3>
+            <p>Provides a consolidated view of active capital projects, tracking milestones, budget status, and completion timelines to support leadership oversight.</p>
+            <a class="report-link" href="https://julianchetlange-svg.github.io/Project-Summary-Progress/" target="_blank" rel="noopener noreferrer">
+              Open Report
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </article>
+
+        </div>
+      </section>
+
+    </main>
   </div>
 
-</div>
+  <button class="fab" onclick="toggleSidebar()">☰ Menu</button>
 
-<!-- ====== CATEGORY DETAIL ====== -->
-<div class="tab-panel" id="tab-categories">
+  <script>
+    const navBtns     = document.querySelectorAll('.nav-btn');
+    const panels      = document.querySelectorAll('.tab-panel');
+    const searchInput = document.getElementById('search-input');
+    const topbarLabel = document.getElementById('topbar-label');
+    let   currentTab  = 'hot-items';
 
-  <div class="section-header">
-    <h2>Facilities Maintenance — Category YOY</h2>
-    <div class="section-line"></div>
-    <div class="section-badge">Excludes CAPEX &amp; PM · Restated YTD</div>
-  </div>
+    const allReports = [
+      { title: 'Hot Issues Tracker',               desc: 'Tracks high-priority operational issues across departments, surfacing escalated items that require immediate follow-up and resolution.',                        cadence: 'High Priority',      href: 'https://julianchetlange-svg.github.io/Hot-Issues-Tracker/',                                          tab: 'hot-items' },
+      { title: 'Forklift Utilization Report',       desc: 'Analyzes forklift utilization across locations, identifying underutilized assets and opportunities for redeployment, reduction, or lifecycle optimization.', cadence: 'Monthly Update',     href: 'https://julianchetlange-svg.github.io/Forklift-Utilization-Report/',                               tab: 'fleet-efficiency' },
+      { title: 'Truck Utilization',                 desc: 'Evaluates truck utilization across routes and locations using deliveries, miles, and time metrics to identify inefficiencies and optimization opportunities.', cadence: 'Monthly Update',    href: 'https://julianchetlange-svg.github.io/Fleet-Utilization-TWRE/',                                    tab: 'fleet-efficiency' },
+      { title: 'Distribution Spend By Category',     desc: 'Covers two main areas: Fleet Overview — overall subcontractor spend, category breakdown, fuel (WEX/Fill Rite), and work order data sourced from Fexa, going back to 2023. Asset Details — individual asset performance under the location tab, covering the full life of each asset.', cadence: 'Monthly Update', href: 'https://julianchetlange-svg.github.io/Distribution-Fleet-Spend-By-Category/', tab: 'fleet-efficiency' },
+      { title: 'Distribution Forklift Utilization', desc: 'Analyzes distribution forklift utilization across locations, identifying underutilized assets and opportunities for redeployment, reduction, or lifecycle optimization.', cadence: 'Monthly Update', href: 'https://julianchetlange-svg.github.io/Distribution-Forklift-Utilization-/', tab: 'fleet-efficiency' },
+      { title: 'Distribution CPM Analysis',         desc: 'Tracks the 3-year cost-per-mile trends across all three Distribution facilities, providing monthly benchmarking data to evaluate internal fleet performance against 3PL alternatives.', cadence: 'Monthly Update', href: 'https://julianchetlange-svg.github.io/Distribution-CPM/',             tab: 'fleet-efficiency' },
+      { title: 'Fleet Work Order Follow-Up',        desc: 'Tracks open fleet work orders by age and status, flagging overdue items and follow-up actions needed to keep maintenance on schedule.',                       cadence: 'Weekly Update',      href: 'https://julianchetlange-svg.github.io/Fleet-WO-Follow-Up/',                                  tab: 'fleet-maintenance' },
+      { title: 'PM Compliance Dashboard',           desc: 'Monitors preventive maintenance compliance rates across the fleet, identifying locations and asset types falling behind on scheduled service intervals.',     cadence: 'Weekly Update',      href: 'https://julianchetlange-svg.github.io/PM-Compliance-Dashboard/',                                    tab: 'fleet-maintenance' },
+      { title: 'Fleet Spend YOY Report',            desc: 'Tracks year-over-year fleet spend trends, highlighting changes in maintenance, parts, and operating costs.',                                                 cadence: 'Monthly Update',     href: 'https://julianchetlange-svg.github.io/Fleet-Spend-Report-YOY/',                                    tab: 'fleet-maintenance' },
+      { title: 'Racking Inventory Management',       desc: 'Manages racking inventory for racking repairs performed by internal teams.', cadence: 'Reference', href: 'https://smccormick50.github.io/McCoy-Racking-/login.html', tab: 'facilities-operations' },
+      { title: 'Electrical Provider Search',         desc: 'Lists electrical provider, ESID number, and outage hotline for each location — a quick reference for facilities teams managing outages and provider contacts.', cadence: 'Reference', href: 'https://smccormick50.github.io/Copy-of-Electricity-Provider-/', tab: 'facilities-operations' },
+      { title: 'Facilities Work Order Follow-Up',   desc: 'Tracks facilities work order aging, follow-up activity, and missed actions to support timely resolution across locations.',                                  cadence: 'Weekly Update',      href: 'https://julianchetlange-svg.github.io/Facilities-WO-Follow-Up-Report/',                              tab: 'facilities-operations' },
+      { title: 'Facilities Spend Dashboard',        desc: 'Provides a comprehensive view of facilities-related spend across locations, tracking costs by category to identify trends and control expenditures.',        cadence: 'Monthly Update',     href: 'https://julianchetlange-svg.github.io/Facility-Spend-Dashboard/',                                  tab: 'facilities-operations' },
+      { title: 'MTD Fuel Trends',                   desc: 'Monitors month-to-date fuel consumption and cost trends across the fleet, surfacing anomalies and location-level variances to support budget management.',  cadence: 'Monthly Update',     href: 'https://julianchetlange-svg.github.io/MTD-Fuel-Trends/',                                            tab: 'budgeting-and-forecasting' },
+      { title: 'Additional Spend Proposal',         desc: 'Evaluates fleet replacement opportunities by modeling emissions impact, revenue implications, and pricing scenarios to support capital allocation decisions.', cadence: 'Strategic Analysis', href: 'https://julianchetlange-svg.github.io/Fleet-Replacement-Opportunity---Emissions-REV-Pricing/', tab: 'budgeting-and-forecasting' },
+      { title: 'Fleet Lifecycle & Budget Planning', desc: 'Supports long-range fleet planning by tracking asset age, replacement timelines, and projected capital needs to guide budget strategy and procurement decisions.', cadence: 'Quarterly Update', href: 'https://julianchetlange-svg.github.io/Fleet-Lifecycle-Budget/',                             tab: 'budgeting-and-forecasting' },
+      { title: 'Project Summary & Progress',        desc: 'Provides a consolidated view of active capital projects, tracking milestones, budget status, and completion timelines to support leadership oversight.',      cadence: 'Weekly Update',      href: 'https://julianchetlange-svg.github.io/Project-Summary-Progress/',                                   tab: 'capital-projects' },
+    ];
 
-  <div class="panel">
-    <div class="panel-header">All Categories — YTD May 2026 vs YTD May 2025 <span class="sub">Fully restated</span></div>
-    <table>
-      <thead>
-        <tr><th>Category</th><th class="num">2026 YTD</th><th class="num">2025 YTD</th><th class="num">$ Change</th><th class="num">% Change</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>HVAC</td><td class="num">$317,999</td><td class="num">$327,351</td><td class="num dpos">($9,352)</td><td class="num"><span class="badge pos">-2.9%</span></td></tr>
-        <tr><td>Alarms</td><td class="num">$186,409</td><td class="num">$336,057</td><td class="num dpos">($149,648)</td><td class="num"><span class="badge pos">-44.5%</span></td></tr>
-        <tr><td>Electrical</td><td class="num">$153,948</td><td class="num">$236,412</td><td class="num dpos">($82,464)</td><td class="num"><span class="badge pos">-34.9%</span></td></tr>
-        <tr class="warn-row"><td>Extermination Services ⚠</td><td class="num">$88,899</td><td class="num">$70,665</td><td class="num dneg">+$18,234</td><td class="num"><span class="badge warn">+25.8%</span></td></tr>
-        <tr><td>Doors</td><td class="num">$79,748</td><td class="num">$98,577</td><td class="num dpos">($18,829)</td><td class="num"><span class="badge pos">-19.1%</span></td></tr>
-        <tr><td>Fire Suppression</td><td class="num">$65,393</td><td class="num">$172,226</td><td class="num dpos">($106,833)</td><td class="num"><span class="badge pos">-62.0%</span></td></tr>
-        <tr><td>Janitorial</td><td class="num">$61,047</td><td class="num">$118,989</td><td class="num dpos">($57,942)</td><td class="num"><span class="badge pos">-48.7%</span></td></tr>
-        <tr><td>Plumbing</td><td class="num">$56,028</td><td class="num">$90,884</td><td class="num dpos">($34,856)</td><td class="num"><span class="badge pos">-38.4%</span></td></tr>
-        <tr><td>Fencing</td><td class="num">$34,529</td><td class="num">$77,178</td><td class="num dpos">($42,649)</td><td class="num"><span class="badge pos">-55.3%</span></td></tr>
-        <tr><td>General Contractor</td><td class="num">$35,554</td><td class="num">$155,316</td><td class="num dpos">($119,762)</td><td class="num"><span class="badge pos">-77.1%</span></td></tr>
-        <tr><td>Landscaping</td><td class="num">$23,094</td><td class="num">$99,841</td><td class="num dpos">($76,747)</td><td class="num"><span class="badge pos">-76.9%</span></td></tr>
-        <tr><td>Waste</td><td class="num">$25,857</td><td class="num">$52,132</td><td class="num dpos">($26,275)</td><td class="num"><span class="badge pos">-50.4%</span></td></tr>
-        <tr><td>Roofing</td><td class="num">$20,709</td><td class="num">$77,338</td><td class="num dpos">($56,629)</td><td class="num"><span class="badge pos">-73.2%</span></td></tr>
-        <tr class="warn-row"><td>Equipment ⚠</td><td class="num">$18,804</td><td class="num">$5,418</td><td class="num dneg">+$13,386</td><td class="num"><span class="badge warn">+247.1%</span></td></tr>
-        <tr><td>Security</td><td class="num">$17,004</td><td class="num">$25,754</td><td class="num dpos">($8,750)</td><td class="num"><span class="badge pos">-34.0%</span></td></tr>
-        <tr><td>Racking</td><td class="num">$15,907</td><td class="num">$77,673</td><td class="num dpos">($61,766)</td><td class="num"><span class="badge pos">-79.5%</span></td></tr>
-        <tr><td>Signage</td><td class="num">$11,689</td><td class="num">$31,129</td><td class="num dpos">($19,440)</td><td class="num"><span class="badge pos">-62.5%</span></td></tr>
-        <tr><td>Supplies</td><td class="num">$9,845</td><td class="num">$8,824</td><td class="num dneg">+$1,021</td><td class="num"><span class="badge neu">+11.6%</span></td></tr>
-        <tr class="total-row">
-          <td>Facilities Total</td>
-          <td class="num">$1,305,423</td><td class="num">$2,275,547</td>
-          <td class="num">($970,124)</td>
-          <td class="num"><span style="color:var(--yellow);font-weight:800;font-size:15px;">-42.6%</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="callout" style="margin:14px 0;">
-    <strong>May highlights:</strong> HVAC was the biggest spend category in May ($123K) and is now nearly flat YTD vs 2025 (−2.9%) — the narrowest gap of any major category. Extermination remains the primary watch item at +25.8% YTD ($89K vs $71K). General Contractor (−77%) and Landscaping (−77%) continue to show the largest savings, likely reflecting reduced project activity vs 2025.
-  </div>
-
-  <div class="panel" style="margin-top:14px;">
-    <div class="panel-header">Category Spend — YTD May 2026 vs 2025</div>
-    <div class="chart-wrap" style="padding:20px;"><canvas id="chartCatBar" style="max-height:340px;"></canvas></div>
-  </div>
-
-</div>
-
-<!-- ====== CAPEX & PM ====== -->
-<div class="tab-panel" id="tab-capex">
-
-  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr));">
-    <div class="kpi-card yellow">
-      <div class="kpi-label">CAPEX YTD May 2026</div>
-      <div class="kpi-value">$4.418M</div>
-      <div class="kpi-delta pos">▼ 60.6% <span class="sub">vs $11.211M YTD 2025</span></div>
-    </div>
-    <div class="kpi-card yellow">
-      <div class="kpi-label">CAPEX Invoices</div>
-      <div class="kpi-value">124</div>
-      <div class="kpi-delta pos">▼ 142 fewer <span class="sub">vs 266 in 2025 YTD</span></div>
-    </div>
-    <div class="kpi-card warn">
-      <div class="kpi-label">PM Spend YTD</div>
-      <div class="kpi-value">$369,827</div>
-      <div class="kpi-delta warn">▲ +20.4% <span class="sub">vs $307,215 in 2025 YTD</span></div>
-    </div>
-    <div class="kpi-card warn">
-      <div class="kpi-label">PM Invoices</div>
-      <div class="kpi-value">428</div>
-      <div class="kpi-delta warn">▲ +33 <span class="sub">vs 395 in 2025 YTD</span></div>
-    </div>
-  </div>
-
-  <div class="section-header">
-    <h2>CAPEX Monthly Detail — 2026 YTD</h2>
-    <div class="section-line"></div>
-  </div>
-
-  <div class="panel" style="margin-bottom:14px;">
-    <div class="panel-header">CAPEX Spend by Month — 2026 vs 2025 <span class="sub">Restated Jan–Apr</span></div>
-    <table>
-      <thead>
-        <tr><th>Month</th><th class="num">2026 CAPEX</th><th class="num">2025 CAPEX</th><th class="num">$ Change</th><th class="num">% Chg</th><th>Note</th></tr>
-      </thead>
-      <tbody>
-        <tr class="restate-row"><td>January <span class="badge rest">restated</span></td><td class="num">$67,122</td><td class="num">$2,174,972</td><td class="num dpos">($2,107,850)</td><td class="num"><span class="badge pos">-96.9%</span></td><td style="font-size:11px;color:var(--muted);">No change</td></tr>
-        <tr class="restate-row"><td>February <span class="badge rest">restated</span></td><td class="num">$648,549</td><td class="num">$1,899,758</td><td class="num dpos">($1,251,209)</td><td class="num"><span class="badge pos">-65.9%</span></td><td style="font-size:11px;color:var(--muted);">No change</td></tr>
-        <tr class="restate-row"><td>March <span class="badge rest">restated</span></td><td class="num">$1,879,335</td><td class="num">$2,111,053</td><td class="num dpos">($231,718)</td><td class="num"><span class="badge pos">-11.0%</span></td><td style="font-size:11px;color:var(--muted);">+$881</td></tr>
-        <tr class="restate-row"><td>April <span class="badge rest">restated</span></td><td class="num">$1,175,475</td><td class="num">$2,777,990</td><td class="num dpos">($1,602,515)</td><td class="num"><span class="badge pos">-57.7%</span></td><td style="font-size:11px;color:var(--muted);">No change</td></tr>
-        <tr class="hl-row"><td><strong>May (new)</strong></td><td class="num">$647,438</td><td class="num">$2,247,342</td><td class="num dpos">($1,599,904)</td><td class="num"><span class="badge pos">-71.2%</span></td><td style="font-size:11px;color:var(--muted);">Sitework-heavy</td></tr>
-        <tr class="total-row"><td>YTD Total</td><td class="num">$4,417,919</td><td class="num">$11,211,115</td><td class="num">($6,793,196)</td><td class="num"><span style="color:var(--yellow);font-weight:800;">-60.6%</span></td><td></td></tr>
-      </tbody>
-    </table>
-    <div class="callout" style="margin:12px;">
-      <strong>May CAPEX of $647K</strong> was primarily driven by Sitework ($263K), Electrical ($112K), and Building ($80K) — suggesting new construction or significant renovation activity. Down 71% vs May 2025's $2.25M.
-    </div>
-  </div>
-
-  <div class="two-col">
-    <div class="panel">
-      <div class="panel-header">PM Spend by Month — 2026 vs 2025</div>
-      <table>
-        <thead><tr><th>Month</th><th class="num">2026 PM</th><th class="num">2025 PM</th><th class="num">Change</th></tr></thead>
-        <tbody>
-          <tr class="restate-row"><td>January <span class="badge rest">restated</span></td><td class="num">$55,874</td><td class="num">$42,171</td><td class="num"><span class="badge warn">+32.5%</span></td></tr>
-          <tr class="restate-row"><td>February <span class="badge rest">restated</span></td><td class="num">$49,158</td><td class="num">$34,584</td><td class="num"><span class="badge warn">+42.1%</span></td></tr>
-          <tr class="restate-row"><td>March <span class="badge rest">restated</span></td><td class="num">$63,362</td><td class="num">$51,716</td><td class="num"><span class="badge warn">+22.5%</span></td></tr>
-          <tr class="restate-row"><td>April <span class="badge rest">restated</span></td><td class="num">$131,057</td><td class="num">$104,432</td><td class="num"><span class="badge warn">+25.5%</span></td></tr>
-          <tr class="hl-row"><td><strong>May (new)</strong></td><td class="num">$70,377</td><td class="num">$74,312</td><td class="num"><span class="badge pos">-5.3% ✓</span></td></tr>
-          <tr class="total-row"><td>YTD Total</td><td class="num">$369,827</td><td class="num">$307,215</td><td class="num">+20.4%</td></tr>
-        </tbody>
-      </table>
-      <div class="callout pos" style="margin:12px;"><strong>May PM turned favorable for the first time in 2026</strong> — down 5.3% vs May 2025. Landscaping ($33K) and HVAC ($28K) were the top PM trades in May. This is an encouraging sign after four consecutive months of elevated PM spend.</div>
-    </div>
-    <div class="panel">
-      <div class="panel-header">Avg Invoice Size — By Type</div>
-      <table>
-        <thead><tr><th>Type</th><th class="num">2026 YTD</th><th class="num">2025 YTD</th><th class="num">Change</th></tr></thead>
-        <tbody>
-          <tr><td>Facilities</td><td class="num">$1,439</td><td class="num">$1,756</td><td class="num"><span class="badge pos">-18.1%</span></td></tr>
-          <tr><td>Facilities — PM</td><td class="num">$864</td><td class="num">$778</td><td class="num"><span class="badge warn">+11.1%</span></td></tr>
-          <tr><td>Facilities — CAPEX</td><td class="num">$35,628</td><td class="num">$42,147</td><td class="num"><span class="badge pos">-15.5%</span></td></tr>
-          <tr class="total-row"><td>Overall Avg</td><td class="num">$4,176</td><td class="num">~$7,050</td><td class="num">-40.8%</td></tr>
-        </tbody>
-      </table>
-      <div class="callout" style="margin:12px;">The avg PM invoice has held steady around $864 for the past few months. Still elevated vs 2025 (+11%), but the gap is narrowing from the +22% seen in Q1. CAPEX avg per invoice is also trending down — a positive sign.</div>
-    </div>
-  </div>
-
-</div>
-
-<!-- ====== WORK ORDERS ====== -->
-<div class="tab-panel" id="tab-workorders">
-
-  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr));">
-    <div class="kpi-card">
-      <div class="kpi-label">Total WOs — YTD May 2026</div>
-      <div class="kpi-value">1,459</div>
-      <div class="kpi-delta pos">▼ 498 vs 2025 YTD (1,957)</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">May WOs</div>
-      <div class="kpi-value">304</div>
-      <div class="kpi-delta pos">▼ vs 406 in May 2025 (−25.1%)</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">YTD Avg WOs / Month</div>
-      <div class="kpi-value">292</div>
-      <div class="kpi-delta pos">▼ vs 391/mo in 2025 YTD</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">PM WOs YTD</div>
-      <div class="kpi-value">428</div>
-      <div class="kpi-delta warn">▲ +33 vs 395 in 2025 YTD</div>
-    </div>
-  </div>
-
-  <div class="section-header">
-    <h2>Work Order Volume — Historical</h2>
-    <div class="section-line"></div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">Monthly WO Count — Jan–May by Year (2014–2026)</div>
-    <div class="chart-wrap" style="padding:20px;"><canvas id="chartWO" style="max-height:280px;"></canvas></div>
-  </div>
-
-  <div class="two-col" style="margin-top:14px;">
-    <div class="panel">
-      <div class="panel-header">Annual WO Count — All Years</div>
-      <table>
-        <thead><tr><th>Year</th><th class="num">Total WOs</th><th class="num">Avg/Month</th></tr></thead>
-        <tbody>
-          <tr><td>2014</td><td class="num">2,997</td><td class="num">250</td></tr>
-          <tr><td>2015</td><td class="num">3,988</td><td class="num">332</td></tr>
-          <tr><td>2016</td><td class="num">4,218</td><td class="num">352</td></tr>
-          <tr><td>2017</td><td class="num">4,460</td><td class="num">372</td></tr>
-          <tr><td>2018</td><td class="num">4,490</td><td class="num">374</td></tr>
-          <tr><td>2019</td><td class="num">4,453</td><td class="num">371</td></tr>
-          <tr><td>2020</td><td class="num">4,240</td><td class="num">353</td></tr>
-          <tr><td>2021</td><td class="num">4,763</td><td class="num">397</td></tr>
-          <tr><td>2022</td><td class="num">5,420</td><td class="num">452</td></tr>
-          <tr><td>2023</td><td class="num">5,609</td><td class="num">467</td></tr>
-          <tr><td>2024</td><td class="num">5,225</td><td class="num">435</td></tr>
-          <tr><td>2025</td><td class="num">4,663</td><td class="num">389</td></tr>
-          <tr class="hl-row"><td><strong>2026 (5 mo. YTD)</strong></td><td class="num">1,459</td><td class="num">292</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="panel">
-      <div class="panel-header">Jan–May WO Count YOY</div>
-      <table>
-        <thead><tr><th>Year</th><th class="num">Jan</th><th class="num">Feb</th><th class="num">Mar</th><th class="num">Apr</th><th class="num">May</th><th class="num">Total</th></tr></thead>
-        <tbody>
-          <tr><td>2022</td><td class="num">304</td><td class="num">350</td><td class="num">440</td><td class="num">434</td><td class="num">368</td><td class="num">1,896</td></tr>
-          <tr><td>2023</td><td class="num">388</td><td class="num">340</td><td class="num">452</td><td class="num">409</td><td class="num">425</td><td class="num">2,014</td></tr>
-          <tr><td>2024</td><td class="num">395</td><td class="num">423</td><td class="num">433</td><td class="num">482</td><td class="num">402</td><td class="num">2,135</td></tr>
-          <tr><td>2025</td><td class="num">355</td><td class="num">386</td><td class="num">334</td><td class="num">476</td><td class="num">406</td><td class="num">1,957</td></tr>
-          <tr class="hl-row"><td><strong>2026</strong></td><td class="num">241</td><td class="num">269</td><td class="num">289</td><td class="num">356</td><td class="num">304</td><td class="num">1,459</td></tr>
-        </tbody>
-      </table>
-      <div class="callout" style="margin:12px;">
-        2026 is running <strong>498 WOs below 2025</strong> through five months (-25.4%). Every month in 2026 has come in below its 2025 counterpart. At the current avg of 292/month, 2026 is on pace for ~3,500 total WOs — which would be the lowest annual count since 2014.
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- ====== HISTORICAL ====== -->
-<div class="tab-panel" id="tab-history">
-
-  <div class="section-header">
-    <h2>Historical Annual Spend — All Years</h2>
-    <div class="section-line"></div>
-  </div>
-
-  <div class="panel" style="margin-bottom:14px;">
-    <div class="panel-header">Total Annual Facility Spend 2014–2026 (All Types incl. CAPEX)</div>
-    <div class="chart-wrap" style="padding:20px;"><canvas id="chartAnnual" style="max-height:300px;"></canvas></div>
-  </div>
-
-  <div class="two-col">
-    <div class="panel">
-      <div class="panel-header">Annual Totals — All Years</div>
-      <table>
-        <thead><tr><th>Year</th><th class="num">Total Spend</th><th class="num">WOs</th><th class="num">Avg / WO</th></tr></thead>
-        <tbody>
-          <tr><td>2014</td><td class="num">$12,356,704</td><td class="num">2,997</td><td class="num">$4,123</td></tr>
-          <tr><td>2015</td><td class="num">$11,803,028</td><td class="num">3,988</td><td class="num">$2,960</td></tr>
-          <tr><td>2016</td><td class="num">$14,278,037</td><td class="num">4,218</td><td class="num">$3,385</td></tr>
-          <tr><td>2017</td><td class="num">$26,129,812</td><td class="num">4,460</td><td class="num">$5,859</td></tr>
-          <tr><td>2018</td><td class="num">$22,450,211</td><td class="num">4,490</td><td class="num">$5,000</td></tr>
-          <tr><td>2019</td><td class="num">$22,470,092</td><td class="num">4,453</td><td class="num">$5,046</td></tr>
-          <tr><td>2020</td><td class="num">$13,279,530</td><td class="num">4,240</td><td class="num">$3,132</td></tr>
-          <tr><td>2021</td><td class="num">$26,707,836</td><td class="num">4,763</td><td class="num">$5,607</td></tr>
-          <tr><td>2022</td><td class="num">$41,524,242</td><td class="num">5,420</td><td class="num">$7,661</td></tr>
-          <tr><td>2023</td><td class="num">$61,743,339</td><td class="num">5,609</td><td class="num">$11,008</td></tr>
-          <tr><td>2024</td><td class="num">$44,315,137</td><td class="num">5,225</td><td class="num">$8,481</td></tr>
-          <tr><td>2025</td><td class="num">$29,024,197</td><td class="num">4,663</td><td class="num">$6,224</td></tr>
-          <tr class="hl-row"><td><strong>2026 (5-mo. YTD)</strong></td><td class="num">$6,093,170</td><td class="num">1,459</td><td class="num">$4,176</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="panel">
-      <div class="panel-header">Monthly Total Spend — 2026 vs 2025 (Restated)</div>
-      <table>
-        <thead><tr><th>Month</th><th class="num">2026 Total</th><th class="num">2025 Total</th><th class="num">YOY</th></tr></thead>
-        <tbody>
-          <tr class="restate-row"><td>January <span class="badge rest">restated</span></td><td class="num">$333,952</td><td class="num">$2,540,240</td><td class="num"><span class="badge pos">-86.8%</span></td></tr>
-          <tr class="restate-row"><td>February <span class="badge rest">restated</span></td><td class="num">$963,380</td><td class="num">$2,465,361</td><td class="num"><span class="badge pos">-60.9%</span></td></tr>
-          <tr class="restate-row"><td>March <span class="badge rest">restated</span></td><td class="num">$2,202,605</td><td class="num">$2,492,417</td><td class="num"><span class="badge pos">-11.6%</span></td></tr>
-          <tr class="restate-row"><td>April <span class="badge rest">restated</span></td><td class="num">$1,571,899</td><td class="num">$3,491,397</td><td class="num"><span class="badge pos">-55.0%</span></td></tr>
-          <tr class="hl-row"><td><strong>May (new)</strong></td><td class="num">$1,021,333</td><td class="num">$2,804,463</td><td class="num"><span class="badge pos">-63.6%</span></td></tr>
-          <tr class="total-row"><td>YTD Total</td><td class="num">$6,093,170</td><td class="num">$13,793,877</td><td class="num">-55.8%</td></tr>
-        </tbody>
-      </table>
-      <div class="callout" style="margin:12px;">
-        May's −63.6% YOY total is the second-best savings month of the year (behind January's −86.8%). The year is on a strong trajectory with every month meaningfully below 2025.
-      </div>
-    </div>
-  </div>
-
-</div>
-
-</main>
-
-<footer>
-  <span><strong>McCoy's Building Supply</strong> &nbsp;·&nbsp; Facilities Management</span>
-  <span>Data Source: FEXA WO Management System &nbsp;·&nbsp; YTD Through May 2026 &nbsp;·&nbsp; Jan–Apr restated for late invoices · Maintenance KPIs exclude CAPEX</span>
-</footer>
-
-<script>
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + id).classList.add('active');
-  btn.classList.add('active');
-  if (id === 'categories' && !window.catBarDone) initCatBar();
-  if (id === 'workorders'  && !window.woDone)     initWOChart();
-  if (id === 'history'     && !window.histDone)   initHistCharts();
-}
-
-const G  = '#1B4D2E';
-const GM = '#255f39';
-const GL = '#2d7346';
-const Y  = '#F5C300';
-const YD = '#c9a000';
-const W  = '#f59e0b';
-const GR = '#8f9185';
-
-const tip  = { backgroundColor: G, borderColor: Y, borderWidth: 1, titleColor: Y, bodyColor: '#fff', padding: 10 };
-const tick = { color: '#555750', font: { family: 'Barlow', size: 12 } };
-const grid = '#e8e9e4';
-
-// Dashboard: Category donut
-new Chart(document.getElementById('chartCats'), {
-  type: 'doughnut',
-  data: {
-    labels: ['HVAC','Alarms','Electrical','Extermination','Doors','Fire Suppression','Janitorial','Plumbing','Other'],
-    datasets: [{
-      data: [317999, 186409, 153948, 88899, 79748, 65393, 61047, 56028, 396952],
-      backgroundColor: [G, Y, GM, W, GL, YD, '#4a7c5e', '#7fb08a', GR],
-      borderColor: '#fff', borderWidth: 2
-    }]
-  },
-  options: {
-    responsive: true, cutout: '60%',
-    plugins: { tooltip: tip, legend: { position: 'right', labels: { color: '#555750', font: { family: 'Barlow', size: 11 }, boxWidth: 12, padding: 10 } } }
-  }
-});
-
-// Monthly grouped bar
-new Chart(document.getElementById('chartMonthly'), {
-  type: 'bar',
-  data: {
-    labels: ['January', 'February', 'March', 'April', 'May'],
-    datasets: [
-      { label: 'Facilities', data: [210957, 265673, 259908, 265367, 303518], backgroundColor: G,  borderRadius: 3 },
-      { label: 'CAPEX',      data: [67122, 648549, 1879335, 1175475, 647438], backgroundColor: Y, borderRadius: 3 },
-      { label: 'PM',         data: [55874, 49158, 63362, 131057, 70377],     backgroundColor: GL, borderRadius: 3 }
-    ]
-  },
-  options: {
-    responsive: true,
-    plugins: { tooltip: tip, legend: { labels: { color: '#555750', font: { family: 'Barlow', size: 12 } } } },
-    scales: {
-      x: { ticks: tick, grid: { color: grid } },
-      y: { ticks: { ...tick, callback: v => '$' + (v/1000).toFixed(0) + 'K' }, grid: { color: grid } }
+    function switchTab(tab) {
+      currentTab = tab;
+      navBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      panels.forEach(p => p.classList.toggle('active', p.id === tab));
+      const activeBtn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
+      if (activeBtn) topbarLabel.textContent = activeBtn.textContent.replace(/\d+/, '').trim();
     }
-  }
-});
 
-// Category bar (lazy)
-function initCatBar() {
-  window.catBarDone = true;
-  new Chart(document.getElementById('chartCatBar'), {
-    type: 'bar',
-    data: {
-      labels: ['HVAC','Alarms','Electrical','Extermination','Doors','Fire Supp.','Janitorial','Plumbing','Fencing','Gen. Contr.','Landscaping','Waste','Roofing','Racking'],
-      datasets: [
-        { label: 'YTD May 2026', data: [317999,186409,153948,88899,79748,65393,61047,56028,34529,35554,23094,25857,20709,15907], backgroundColor: G, borderRadius: 3 },
-        { label: 'YTD May 2025', data: [327351,336057,236412,70665,98577,172226,118989,90884,77178,155316,99841,52132,77338,77673], backgroundColor: Y, borderRadius: 3 }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: { tooltip: tip, legend: { labels: { color: '#555750', font: { family: 'Barlow', size: 12 } } } },
-      scales: {
-        x: { ticks: { ...tick, font: { size: 11 } }, grid: { color: grid } },
-        y: { ticks: { ...tick, callback: v => '$' + (v/1000).toFixed(0) + 'K' }, grid: { color: grid } }
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        searchInput.value = '';
+        switchTab(btn.dataset.tab);
+        closeSidebar();
+      });
+    });
+
+    const arrowSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+
+    function makeCard(r) {
+      return `
+        <article class="report-card" data-title="${r.title.toLowerCase()}">
+          <div class="card-pills">
+            <span class="pill pill-status">Current</span>
+            <span class="pill pill-cadence">${r.cadence}</span>
+          </div>
+          <h3>${r.title}</h3>
+          <p>${r.desc}</p>
+          <a class="report-link" href="${r.href}" target="_blank" rel="noopener noreferrer">Open Report ${arrowSVG}</a>
+        </article>`;
+    }
+
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (!q) { switchTab(currentTab); return; }
+
+      navBtns.forEach(b => b.classList.remove('active'));
+      panels.forEach(p => p.classList.toggle('active', p.id === 'all-search-results'));
+      topbarLabel.textContent = `Search: "${searchInput.value}"`;
+
+      const results = allReports.filter(r =>
+        r.title.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q) || r.cadence.toLowerCase().includes(q)
+      );
+
+      const grid  = document.getElementById('search-grid');
+      const empty = document.getElementById('empty-state');
+      const count = document.getElementById('search-result-count');
+
+      if (results.length === 0) {
+        grid.innerHTML = '';
+        empty.style.display = 'block';
+        count.textContent = 'No reports matched your query.';
+      } else {
+        grid.innerHTML = results.map(makeCard).join('');
+        empty.style.display = 'none';
+        count.textContent = `${results.length} report${results.length !== 1 ? 's' : ''} found`;
       }
-    }
-  });
-}
+    });
 
-// WO chart (lazy)
-function initWOChart() {
-  window.woDone = true;
-  new Chart(document.getElementById('chartWO'), {
-    type: 'bar',
-    data: {
-      labels: ['2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'],
-      datasets: [
-        { label: 'Jan', data: [153,248,231,217,272,283,272,296,304,388,395,355,241], backgroundColor: G,  borderRadius: 2 },
-        { label: 'Feb', data: [167,227,300,273,259,283,268,307,350,340,423,386,269], backgroundColor: GL, borderRadius: 2 },
-        { label: 'Mar', data: [160,215,364,410,306,337,325,359,440,452,433,334,289], backgroundColor: YD, borderRadius: 2 },
-        { label: 'Apr', data: [230,324,382,383,434,407,288,379,434,409,482,476,356], backgroundColor: W,  borderRadius: 2 },
-        { label: 'May', data: [207,313,329,397,354,391,228,405,368,425,402,406,304], backgroundColor: (ctx) => ctx.dataIndex === 12 ? Y : '#c9a000', borderRadius: 2 }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: { tooltip: tip, legend: { labels: { color: '#555750', font: { family: 'Barlow', size: 12 } } } },
-      scales: {
-        x: { stacked: true, ticks: tick, grid: { color: grid } },
-        y: { stacked: true, ticks: tick, grid: { color: grid } }
-      }
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('overlay').classList.toggle('open');
     }
-  });
-}
-
-// Annual history (lazy)
-function initHistCharts() {
-  window.histDone = true;
-  new Chart(document.getElementById('chartAnnual'), {
-    type: 'bar',
-    data: {
-      labels: ['2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025','2026*'],
-      datasets: [{
-        label: 'Total Annual Spend',
-        data: [12356704,11803028,14278037,26129812,22450211,22470092,13279530,26707836,41524242,61743339,44315137,29024197,6093170],
-        backgroundColor: (ctx) => ctx.dataIndex === 12 ? Y : G,
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false }, tooltip: tip },
-      scales: {
-        x: { ticks: tick, grid: { color: grid } },
-        y: { ticks: { ...tick, callback: v => '$' + (v/1000000).toFixed(0) + 'M' }, grid: { color: grid } }
-      }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('open');
     }
-  });
-}
-</script>
+  </script>
 </body>
 </html>
